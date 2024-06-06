@@ -1,0 +1,17 @@
+.scroll-container {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-container > * {
+  flex: 0 0 auto;
+}
+
+.booking-container {
+  padding-top: 150px;
+}
