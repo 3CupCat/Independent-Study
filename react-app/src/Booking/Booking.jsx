@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Form, Button, ButtonGroup, Row, Col, Alert } from "react-bootstrap";
 import { useMediaQuery } from "react-responsive";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./booking.css";
+import axios from "axios";
 
 const Booking = () => {
   const isLargeScreen = useMediaQuery({ query: "(min-width: 768px)" });
@@ -13,75 +14,34 @@ const Booking = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [isShowSelected, setIsShowSelected] = useState(false);
   const navigate = useNavigate();
+  const { movieId } = useParams();
+  const [showDetail, setShowDetail] = useState([]);
 
-  const showDetail = [
-    {
-      id: 1,
-      theaterName: "臺中大遠百威秀影城",
-      address: "台中市西屯區臺灣大道三段251號13樓",
-      shows: [
-        { showtime: "2024-06-10 10:00:00", screenId: 1, screenName: 1 },
-        { showtime: "2024-06-10 11:00:00", screenId: 2, screenName: 3 },
-        { showtime: "2024-06-11 12:00:00", screenId: 1, screenName: 1 },
-        { showtime: "2024-06-11 13:00:00", screenId: 2, screenName: 3 },
-        { showtime: "2024-06-12 14:00:00", screenId: 1, screenName: 1 },
-        { showtime: "2024-06-12 15:00:00", screenId: 2, screenName: 3 },
-        { showtime: "2024-06-13 16:00:00", screenId: 1, screenName: 1 },
-        { showtime: "2024-06-13 17:00:00", screenId: 2, screenName: 3 },
-        { showtime: "2024-06-14 18:00:00", screenId: 1, screenName: 1 },
-        { showtime: "2024-06-14 19:00:00", screenId: 2, screenName: 3 },
-        { showtime: "2024-06-15 20:00:00", screenId: 1, screenName: 1 },
-        { showtime: "2024-06-15 21:00:00", screenId: 2, screenName: 3 },
-        { showtime: "2024-06-16 22:00:00", screenId: 1, screenName: 1 },
-        { showtime: "2024-06-16 23:00:00", screenId: 2, screenName: 3 },
-      ],
-    },
-    {
-      id: 2,
-      theaterName: "台中中港新光影城",
-      address: "台中市西屯區臺灣大道三段301號14樓",
-      shows: [
-        { showtime: "2024-06-10 00:00:00", screenId: 3, screenName: 1 },
-        { showtime: "2024-06-10 01:00:00", screenId: 4, screenName: 3 },
-        { showtime: "2024-06-11 02:00:00", screenId: 3, screenName: 1 },
-        { showtime: "2024-06-11 03:00:00", screenId: 4, screenName: 3 },
-        { showtime: "2024-06-12 04:00:00", screenId: 3, screenName: 1 },
-        { showtime: "2024-06-12 05:00:00", screenId: 4, screenName: 3 },
-        { showtime: "2024-06-13 06:00:00", screenId: 3, screenName: 1 },
-        { showtime: "2024-06-13 07:00:00", screenId: 4, screenName: 3 },
-        { showtime: "2024-06-14 08:00:00", screenId: 3, screenName: 1 },
-        { showtime: "2024-06-14 09:00:00", screenId: 4, screenName: 3 },
-        { showtime: "2024-06-15 10:00:00", screenId: 3, screenName: 1 },
-        { showtime: "2024-06-15 11:00:00", screenId: 4, screenName: 3 },
-        { showtime: "2024-06-16 12:00:00", screenId: 3, screenName: 1 },
-        { showtime: "2024-06-16 13:00:00", screenId: 4, screenName: 3 },
-      ],
-    },
-    {
-      id: 3,
-      theaterName: "員林影城",
-      address: "彰化縣員林市南昌路39號3樓",
-      shows: [
-        { showtime: "2024-06-10 10:30:00", screenId: 5, screenName: 1 },
-        { showtime: "2024-06-10 11:30:00", screenId: 7, screenName: 3 },
-        { showtime: "2024-06-11 12:30:00", screenId: 5, screenName: 1 },
-        { showtime: "2024-06-11 13:30:00", screenId: 7, screenName: 3 },
-        { showtime: "2024-06-12 14:30:00", screenId: 5, screenName: 1 },
-        { showtime: "2024-06-12 15:30:00", screenId: 7, screenName: 3 },
-        { showtime: "2024-06-13 16:30:00", screenId: 5, screenName: 1 },
-        { showtime: "2024-06-13 17:30:00", screenId: 7, screenName: 3 },
-        { showtime: "2024-06-14 18:30:00", screenId: 5, screenName: 1 },
-        { showtime: "2024-06-14 19:30:00", screenId: 7, screenName: 3 },
-        { showtime: "2024-06-15 20:30:00", screenId: 5, screenName: 1 },
-        { showtime: "2024-06-15 21:30:00", screenId: 7, screenName: 3 },
-        { showtime: "2024-06-16 22:30:00", screenId: 5, screenName: 1 },
-        { showtime: "2024-06-16 23:30:00", screenId: 7, screenName: 3 },
-        { showtime: "2024-06-16 23:30:00", screenId: 6, screenName: 2 },
-      ],
-    },
-  ];
+  useEffect(() => {
+    const fetchShowDetail = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/booking/${movieId}`
+        );
+        setShowDetail(response.data);
+      } catch (error) {
+        if (error.response) {
+          console.log(error.response.data);
+          console.log(error.response.status);
+          console.log(error.response.headers);
+        } else if (error.request) {
+          console.log(error.request);
+        } else {
+          console.log("Error", error.message);
+        }
+        console.log(error.config);
+      }
+    };
 
-  // 縣市排序(連江縣 === 馬祖)
+    fetchShowDetail();
+  }, [movieId]);
+
+  // 縣市排序
   const cities = [
     "基隆市",
     "台北市",
@@ -117,56 +77,60 @@ const Booking = () => {
   useEffect(() => {
     const firstAvailableCity = availableCities.find((city) => !city.disabled);
     setSelectedCity(firstAvailableCity ? firstAvailableCity.name : "");
-  }, []);
+  }, [showDetail]);
 
   // 影城依id由小~大排序
   const theaters = showDetail
     .filter((theater) => theater.address.startsWith(selectedCity))
-    .sort((a, b) => a.id - b.id);
+    .sort((a, b) => a.theaterId - b.theaterId);
 
-  // 預設呈現第一個影城
+  // 預設選擇地區內,id最小影城
   useEffect(() => {
     if (theaters.length > 0) {
-      setSelectedTheaterId(theaters[0].id);
+      setSelectedTheaterId(theaters[0].theaterId);
     }
   }, [selectedCity]);
 
   // 當前選擇的影城
   const selectedTheater = theaters.find(
-    (theater) => theater.id === selectedTheaterId
+    (theater) => theater.theaterId === selectedTheaterId
   );
 
-  // 設定預設日期
+  // 由小到大排序日期，預設最小日期
+  // 切換影城時，呈現同原本所選日期；若無則依照上方邏輯
   useEffect(() => {
     if (selectedTheater) {
-      if (!selectedDate) {
-        const today = new Date().toISOString().split("T")[0];
-        const todayDate = selectedTheater.shows.some((show) =>
-          show.showtime.startsWith(today)
+      const today = new Date().toISOString().split("T")[0];
+      const availableDates = Array.from(
+        new Set(
+          selectedTheater.showList.map((show) => show.showTime.split(" ")[0])
         )
-          ? today
-          : selectedTheater.shows[0].showtime.split(" ")[0];
-        setSelectedDate(todayDate);
+      ).sort((a, b) => new Date(a) - new Date(b));
+      if (!selectedDate || !availableDates.includes(selectedDate)) {
+        const closestDate =
+          availableDates.find((date) => new Date(date) >= new Date(today)) ||
+          availableDates[0];
+        setSelectedDate(closestDate);
       }
     }
   }, [selectedTheater]);
 
-  // 列出所選影城有場次的日期
+  // 列出所選影城有場次的日期，並由小~大排序
   const dates = selectedTheater
     ? Array.from(
         new Set(
-          selectedTheater.shows.map((show) => show.showtime.split(" ")[0])
+          selectedTheater.showList.map((show) => show.showTime.split(" ")[0])
         )
-      )
+      ).sort((a, b) => new Date(a) - new Date(b))
     : [];
 
   // 將所選日期的場次，依時間小~大排序；若時間相同，再判斷id小~大
   const shows = selectedTheater
-    ? selectedTheater.shows
-        .filter((show) => show.showtime.startsWith(selectedDate))
+    ? selectedTheater.showList
+        .filter((show) => show.showTime.startsWith(selectedDate))
         .sort((a, b) => {
-          const timeA = new Date(a.showtime).getTime();
-          const timeB = new Date(b.showtime).getTime();
+          const timeA = new Date(a.showTime).getTime();
+          const timeB = new Date(b.showTime).getTime();
           return timeA - timeB || a.screenId - b.screenId;
         })
     : [];
@@ -181,9 +145,8 @@ const Booking = () => {
     setIsShowSelected(index !== null);
   }
 
-  function handleNextStep(event) {
+  function handleNextStep() {
     if (!isShowSelected) {
-      event.preventDefault();
       setShowAlert(true);
     } else {
       const newUrl = `${window.location.pathname}/seats`;
@@ -222,9 +185,9 @@ const Booking = () => {
         </Form.Select>
       </Form.Group>
       <Form.Group controlId="theater" className="mb-3">
-        <Form.Label>請選擇劇院：</Form.Label>
+        <Form.Label>請選擇影城：</Form.Label>
         <Form.Select
-          value={selectedTheaterId}
+          value={selectedTheaterId || ""}
           onChange={(e) => {
             setSelectedTheaterId(Number(e.target.value));
             setSelectedShowIndex(null);
@@ -232,7 +195,7 @@ const Booking = () => {
           }}
         >
           {theaters.map((theater) => (
-            <option value={theater.id} key={theater.id}>
+            <option value={theater.theaterId} key={theater.theaterId}>
               {theater.theaterName}
             </option>
           ))}
@@ -265,8 +228,10 @@ const Booking = () => {
               onClick={() => handleSelectShow(index)}
             >
               <div className="d-flex flex-column align-items-center">
-                <span>{formatTime(show.showtime)}</span>
-                <span>Screen {show.screenName}</span>
+                <span>{formatTime(show.showTime)}</span>
+                <span>
+                  {show.screenName} ( {show.screenClass} )
+                </span>
               </div>
             </Button>
           </Col>

@@ -25,13 +25,13 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/movies" element={<Overview />} />
-        <Route path="/movies/:id" element={<Movie />} />
+        <Route path="/movies/:movieId" element={<Movie />} />
         <Route path="/theaters" element={<TheaterInfomation />} />
-        <Route path="/booking/:id/payment" element={<PaymentLayout />} />
-        <Route path="/booking/:id" element={<BookingLayout />} />
+        <Route path="/booking/:movieId/payment" element={<PaymentLayout />} />
+        <Route path="/booking/:movieId" element={<BookingLayout />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignIn />} />
-        <Route path="/booking/:id/seats" element={<SeatLayout />} />
+        <Route path="/booking/:movieId/seats" element={<SeatLayout />} />
         <Route path="/reviews" element={<CommentSection />} />
         <Route path="/member" element={<Profile />} />
         <Route path="/password" element={<Password />} />
