@@ -1,32 +1,62 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "./VideoPlayer.css";
 
 function VideoPlayer() {
+  const movieIds = [2, 1]; // 需要获取的 movieIds
+
   const [trailerData, setTrailerData] = useState({
-    trailers: ["VWavstJydZU", "ahL5yAOXjzU"],
+    trailers: {},
     selectedTrailerIndex: 0,
     player: null,
   });
 
+  // Fetch trailers from backend for all movie IDs
+  useEffect(() => {
+    async function fetchTrailer(movieId) {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/movies/${movieId}/trailers`,
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const trailers = await response.json();
+        console.log(`Fetched trailers for movieId ${movieId}:`, trailers);
+
+        setTrailerData((prevData) => ({
+          ...prevData,
+          trailers: { ...prevData.trailers, [movieId]: trailers },
+        }));
+      } catch (error) {
+        console.error("Error fetching trailers:", error);
+      }
+    }
+
+    movieIds.forEach((id) => fetchTrailer(id));
+  }, []);
+
+  // Initialize YouTube player
   useEffect(() => {
     const tag = document.createElement("script");
     tag.src = "https://www.youtube.com/iframe_api";
     const firstScriptTag = document.getElementsByTagName("script")[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-    const iframe = document.getElementById("player");
-
-    iframe.onload = function () {
-      iframe.style.height = iframe.parentNode.offsetHeight + "px";
-
-      iframe.style.width = iframe.parentNode.offsetWidth + "px";
-    };
-
     window.onYouTubeIframeAPIReady = () => {
-      setTrailerData((prevData) => ({
-        ...prevData,
-        player: new window.YT.Player("player", {
-          videoId: prevData.trailers[prevData.selectedTrailerIndex],
+      const movieId =
+        movieIds[trailerData.selectedTrailerIndex % movieIds.length];
+      const trailer = trailerData.trailers[movieId]
+        ? trailerData.trailers[movieId][0]
+        : null;
+
+      if (trailer) {
+        const player = new window.YT.Player("player", {
+          videoId: trailer,
           playerVars: {
             controls: 0,
             modestbranding: 1,
@@ -41,20 +71,27 @@ function VideoPlayer() {
           events: {
             onReady: onPlayerReady,
           },
-        }),
-      }));
+        });
+
+        setTrailerData((prevData) => ({ ...prevData, player }));
+      }
     };
 
     return () => {
       window.onYouTubeIframeAPIReady = null;
     };
-  }, []);
+  }, [trailerData.trailers]);
 
+  // Load new video when selectedTrailerIndex changes
   useEffect(() => {
-    if (trailerData.player) {
-      trailerData.player.loadVideoById(
-        trailerData.trailers[trailerData.selectedTrailerIndex]
-      );
+    const { player, selectedTrailerIndex } = trailerData;
+    const movieId = movieIds[selectedTrailerIndex % movieIds.length];
+    const trailer = trailerData.trailers[movieId]
+      ? trailerData.trailers[movieId][0]
+      : null;
+
+    if (player && trailer) {
+      player.loadVideoById(trailer);
     }
   }, [trailerData.selectedTrailerIndex]);
 
@@ -67,7 +104,7 @@ function VideoPlayer() {
       ...prevData,
       selectedTrailerIndex:
         prevData.selectedTrailerIndex === 0
-          ? prevData.trailers.length - 1
+          ? movieIds.length - 1
           : prevData.selectedTrailerIndex - 1,
     }));
   }
@@ -76,9 +113,7 @@ function VideoPlayer() {
     setTrailerData((prevData) => ({
       ...prevData,
       selectedTrailerIndex:
-        prevData.selectedTrailerIndex === prevData.trailers.length - 1
-          ? 0
-          : prevData.selectedTrailerIndex + 1,
+        (prevData.selectedTrailerIndex + 1) % movieIds.length,
     }));
   }
 
