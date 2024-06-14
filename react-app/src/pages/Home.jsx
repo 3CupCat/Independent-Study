@@ -2,83 +2,29 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import VideoPlayer from "../components/VideoPlayer";
 import ButtonHome from "../components/Button/ButtonHome";
-import MovieList from "../components/MovieList";
-import { Box, Flex, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Image,
+  Text,
+  Grid,
+  useColorModeValue,
+  IconButton,
+  useBreakpointValue,
+  Spinner,
+} from "@chakra-ui/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 
 const Home = () => {
-  const nowPlayingData = [
-    {
-      src: "/Dune.jpg",
-      alt: "Dune",
-      title: "Dune",
-      path: "/booking/:id",
-    },
-    {
-      src: "/Maleficent.jpg",
-      alt: "Maleficent",
-      title: "Maleficent",
-      path: "/movies/maleficent",
-    },
-    {
-      src: "/InsideOut2.jpg",
-      alt: "Inside Out 2",
-      title: "Inside Out 2",
-      path: "/movies/insideout2",
-    },
-    {
-      src: "/FastAndFurious.jpg",
-      alt: "Fast & Furious",
-      title: "Fast & Furious",
-      path: "/movies/fastfurious",
-    },
-    {
-      src: "/GranTurismo.jpg",
-      alt: "Gran Turismo",
-      title: "Gran Turismo",
-      path: "/movies/granturismo",
-    },
-    {
-      src: "/Elemental.jpg",
-      alt: "Elemental",
-      title: "Elemental",
-      path: "/movies/elemental",
-    },
-  ];
-
-  const comingSoonData = [
-    { src: "/Coco.jpg", alt: "Coco", title: "Coco", path: "/movies/coco" },
-    {
-      src: "/ToyStory.jpg",
-      alt: "Toy Story",
-      title: "Toy Story",
-      path: "/movies/toystory",
-    },
-    {
-      src: "/FrozeII.jpg",
-      alt: "Frozen II",
-      title: "Frozen II",
-      path: "/movies/frozen2",
-    },
-    { src: "/Wish.jpg", alt: "Wish", title: "Wish", path: "/movies/wish" },
-    {
-      src: "/TheIncredibles.jpg",
-      alt: "The Incredibles",
-      title: "The Incredibles",
-      path: "/movies/incredibles",
-    },
-    {
-      src: "/Ratatouille.jpg",
-      alt: "Ratatouille",
-      title: "Ratatouille",
-      path: "/movies/ratatouille",
-    },
-  ];
-
-  const navRef = useRef(null);
+  const [playingMovies, setPlayingMovies] = useState([]);
+  const [upcomingMovies, setUpcomingMovies] = useState([]);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [hoveredMovie, setHoveredMovie] = useState(null);
   const [navHeight, setNavHeight] = useState(0);
-  const [showNowPlaying, setShowNowPlaying] = useState(true);
-  const movieData = showNowPlaying ? nowPlayingData : comingSoonData;
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const navRef = useRef(null);
   const bg = useColorModeValue("#000000", "#000000");
   const buttonBg = useColorModeValue("#2D2D2D", "#2D2D2D");
   const buttonActiveBg = useColorModeValue("#000000", "#000000");
@@ -87,9 +33,41 @@ const Home = () => {
   const buttonHoverBg = useColorModeValue("#3D3D3D", "#3D3D3D");
   const buttonFocusBoxShadow = "0 0 0 4px #FFFFF0";
 
-  const handleMovieClick = (path) => {
-    navigate(path);
-  };
+  const moviesPerPage = useBreakpointValue({
+    base: 2,
+    sm: 2,
+    md: 4,
+    lg: 5,
+    xl: 6,
+  });
+
+  useEffect(() => {
+    async function fetchMovies() {
+      setLoading(true);
+      try {
+        const [playingResponse, upcomingResponse] = await Promise.all([
+          fetch(`http://localhost:8080/api/movie?isPlaying=true`),
+          fetch(`http://localhost:8080/api/movie?isPlaying=false`),
+        ]);
+
+        if (!playingResponse.ok || !upcomingResponse.ok) {
+          throw new Error("Failed to fetch movies");
+        }
+
+        const playingData = await playingResponse.json();
+        const upcomingData = await upcomingResponse.json();
+
+        setPlayingMovies(playingData);
+        setUpcomingMovies(upcomingData);
+      } catch (error) {
+        console.error("Failed to fetch movies:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchMovies();
+  }, []);
 
   useEffect(() => {
     if (navRef.current) {
@@ -98,12 +76,42 @@ const Home = () => {
     }
   }, []);
 
+  const handleMovieClick = (path) => {
+    navigate(path);
+  };
+
+  const handlePrevMovie = () => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? displayedMovies.length - 1 : prevIndex - 1
+    );
+  };
+
+  const handleNextMovie = () => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === displayedMovies.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const movies = isPlaying ? playingMovies : upcomingMovies;
+
+  let displayedMovies;
+  if (movies.length < 2) {
+    displayedMovies = movies;
+  } else {
+    displayedMovies = movies.slice(currentIndex, currentIndex + moviesPerPage);
+    if (displayedMovies.length < moviesPerPage) {
+      displayedMovies = displayedMovies.concat(
+        movies.slice(0, moviesPerPage - displayedMovies.length)
+      );
+    }
+  }
+
   return (
     <Box bg={bg} color="white" minHeight="100vh" pt="4rem">
       <Box
         position="relative"
         width="100%"
-        height={{ base: "60vh", lg: `calc(100vh - ${navHeight}px)` }} // 小屏幕上设置成60vh
+        height={{ base: "60vh", lg: `calc(100vh - ${navHeight}px)` }}
       >
         <VideoPlayer style={{ width: "100%", height: "100%" }} />
       </Box>
@@ -113,29 +121,115 @@ const Home = () => {
         mt={12}
         mb={8}
         ref={navRef}
-        direction={{ base: "column", lg: "row" }} // 小屏幕上纵向排列
-        alignItems={{ base: "center", lg: "unset" }} // 小屏幕上标签居中
+        direction={{ base: "column", lg: "row" }}
+        alignItems={{ base: "center", lg: "unset" }}
       >
         <ButtonHome
-          onClick={() => setShowNowPlaying(true)}
-          bg={showNowPlaying ? buttonActiveBg : buttonBg}
-          color={showNowPlaying ? buttonTextColor : buttonInactiveTextColor}
+          onClick={() => {
+            setIsPlaying(true);
+            setCurrentIndex(0);
+          }}
+          bg={isPlaying ? buttonActiveBg : buttonBg}
+          color={isPlaying ? buttonTextColor : buttonInactiveTextColor}
           _hover={{ bg: buttonHoverBg }}
           _focus={{ boxShadow: buttonFocusBoxShadow }}
           label="現正熱映"
-          mb={{ base: 4, lg: 0 }} // 小屏幕上添加底部外边距
+          mb={{ base: 4, lg: 0 }}
         />
         <ButtonHome
-          onClick={() => setShowNowPlaying(false)}
-          bg={!showNowPlaying ? buttonActiveBg : buttonBg}
-          color={!showNowPlaying ? buttonTextColor : buttonInactiveTextColor}
+          onClick={() => {
+            setIsPlaying(false);
+            setCurrentIndex(0);
+          }}
+          bg={!isPlaying ? buttonActiveBg : buttonBg}
+          color={!isPlaying ? buttonTextColor : buttonInactiveTextColor}
           _hover={{ bg: buttonHoverBg }}
           _focus={{ boxShadow: buttonFocusBoxShadow }}
           label="即將上映"
         />
       </Flex>
       <Box minHeight="50px" />
-      <MovieList movieData={movieData} onMovieClick={handleMovieClick} />
+      <Flex justify="center" alignItems="center">
+        {movies.length > moviesPerPage && (
+          <IconButton
+            icon={<ChevronLeftIcon />}
+            onClick={handlePrevMovie}
+            aria-label="Previous Movie"
+            bg={buttonBg}
+            color={buttonTextColor}
+            _hover={{ bg: buttonHoverBg }}
+            _focus={{ boxShadow: buttonFocusBoxShadow }}
+            mr={4}
+          />
+        )}
+        {loading ? (
+          <Spinner size="xl" />
+        ) : (
+          <Grid
+            templateColumns={`repeat(${Math.min(
+              moviesPerPage,
+              displayedMovies.length
+            )}, 1fr)`}
+            gap={6}
+          >
+            {displayedMovies.map((movie) => (
+              <Box
+                key={movie.id}
+                className="movie-container"
+                width="200px"
+                height="300px"
+                overflow="hidden"
+                position="relative"
+                _hover={{
+                  transform: "scale(1.05)",
+                  transition: "transform 0.3s",
+                }}
+                onClick={() => handleMovieClick(`/booking/${movie.id}`)}
+                cursor="pointer"
+                onMouseEnter={() => setHoveredMovie(movie.id)}
+                onMouseLeave={() => setHoveredMovie(null)}
+              >
+                <Image
+                  className="movie-image"
+                  src={movie.poster}
+                  alt={movie.title}
+                  width="100%"
+                  height="100%"
+                  objectFit="cover"
+                />
+                <Text className="movie-title" textAlign="center" mt="2">
+                  {movie.title}
+                </Text>
+                {!isPlaying && hoveredMovie === movie.id && (
+                  <Text
+                    position="absolute"
+                    bottom="10px"
+                    left="10px"
+                    bg="rgba(0, 0, 0, 0.7)"
+                    color="white"
+                    p="2"
+                    borderRadius="5px"
+                  >
+                    上映日期: {new Date(movie.releaseDate).toLocaleDateString()}
+                  </Text>
+                )}
+              </Box>
+            ))}
+          </Grid>
+        )}
+        {movies.length > moviesPerPage && (
+          <IconButton
+            icon={<ChevronRightIcon />}
+            onClick={handleNextMovie}
+            aria-label="Next Movie"
+            bg={buttonBg}
+            color={buttonTextColor}
+            _hover={{ bg: buttonHoverBg }}
+            _focus={{ boxShadow: buttonFocusBoxShadow }}
+            ml={4}
+          />
+        )}
+      </Flex>
       <Box minHeight="50px" />
     </Box>
   );

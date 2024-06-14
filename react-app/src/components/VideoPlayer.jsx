@@ -1,32 +1,84 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./VideoPlayer.css";
 
 function VideoPlayer() {
+  const [movieIds, setMovieIds] = useState([]); // Dynamic movieIds
+  const [trailers, setTrailers] = useState({});
   const [trailerData, setTrailerData] = useState({
-    trailers: ["VWavstJydZU", "ahL5yAOXjzU"],
     selectedTrailerIndex: 0,
-    player: null,
   });
 
+  const playerRef = useRef(null); // Using ref to store player instance
+  const apiLoadedRef = useRef(false); // Track if YouTube API is loaded
+
+  // Fetch homepage trailers from backend
   useEffect(() => {
-    const tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName("script")[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    async function fetchHomepageTrailers() {
+      try {
+        const response = await fetch(
+          "http://localhost:8080/api/homepageTrailers"
+        );
 
-    const iframe = document.getElementById("player");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-    iframe.onload = function () {
-      iframe.style.height = iframe.parentNode.offsetHeight + "px";
+        const data = await response.json();
+        console.log("Fetched homepage trailers:", data);
 
-      iframe.style.width = iframe.parentNode.offsetWidth + "px";
+        const ids = data.map((movie) => movie.id);
+        const trailersMap = data.reduce((acc, movie) => {
+          acc[movie.id] = movie.trailer;
+          return acc;
+        }, {});
+
+        setMovieIds(ids);
+        setTrailers(trailersMap);
+      } catch (error) {
+        console.error("Error fetching homepage trailers:", error);
+      }
+    }
+
+    fetchHomepageTrailers();
+  }, []);
+
+  useEffect(() => {
+    // Ensure YouTube API is loaded once
+    if (!apiLoadedRef.current) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName("script")[0];
+      if (firstScriptTag) {
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        apiLoadedRef.current = true;
+      }
+
+      window.onYouTubeIframeAPIReady = () => {
+        initializePlayer();
+      };
+    } else {
+      initializePlayer();
+    }
+
+    return () => {
+      window.onYouTubeIframeAPIReady = null;
+      if (playerRef.current) {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
     };
+  }, [movieIds, trailers]);
 
-    window.onYouTubeIframeAPIReady = () => {
-      setTrailerData((prevData) => ({
-        ...prevData,
-        player: new window.YT.Player("player", {
-          videoId: prevData.trailers[prevData.selectedTrailerIndex],
+  const initializePlayer = () => {
+    const { selectedTrailerIndex } = trailerData;
+    if (movieIds.length > 0) {
+      const movieId = movieIds[selectedTrailerIndex % movieIds.length];
+      const trailer = trailers[movieId] || null;
+
+      if (trailer && !playerRef.current) {
+        console.log("Initializing new YouTube Player with video ID:", trailer);
+        const player = new window.YT.Player("player", {
+          videoId: trailer,
           playerVars: {
             controls: 0,
             modestbranding: 1,
@@ -41,20 +93,30 @@ function VideoPlayer() {
           events: {
             onReady: onPlayerReady,
           },
-        }),
-      }));
-    };
+        });
 
-    return () => {
-      window.onYouTubeIframeAPIReady = null;
-    };
-  }, []);
+        playerRef.current = player;
+      } else if (playerRef.current && trailer) {
+        console.log(
+          "Loading new video in existing player with video ID:",
+          trailer
+        );
+        playerRef.current.loadVideoById(trailer);
+      }
+    }
+  };
 
   useEffect(() => {
-    if (trailerData.player) {
-      trailerData.player.loadVideoById(
-        trailerData.trailers[trailerData.selectedTrailerIndex]
-      );
+    const player = playerRef.current;
+    const { selectedTrailerIndex } = trailerData;
+    if (movieIds.length > 0) {
+      const movieId = movieIds[selectedTrailerIndex % movieIds.length];
+      const trailer = trailers[movieId] || null;
+
+      if (player && trailer && apiLoadedRef.current) {
+        console.log("Loading video by ID:", trailer);
+        player.loadVideoById(trailer);
+      }
     }
   }, [trailerData.selectedTrailerIndex]);
 
@@ -67,7 +129,7 @@ function VideoPlayer() {
       ...prevData,
       selectedTrailerIndex:
         prevData.selectedTrailerIndex === 0
-          ? prevData.trailers.length - 1
+          ? movieIds.length - 1
           : prevData.selectedTrailerIndex - 1,
     }));
   }
@@ -76,9 +138,7 @@ function VideoPlayer() {
     setTrailerData((prevData) => ({
       ...prevData,
       selectedTrailerIndex:
-        prevData.selectedTrailerIndex === prevData.trailers.length - 1
-          ? 0
-          : prevData.selectedTrailerIndex + 1,
+        (prevData.selectedTrailerIndex + 1) % movieIds.length,
     }));
   }
 

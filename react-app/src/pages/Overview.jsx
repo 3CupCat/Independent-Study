@@ -1,79 +1,21 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { Box, Flex, Grid, Text, useColorModeValue } from "@chakra-ui/react";
-import MovieData from "../components/MovieData";
+import { useState, useEffect } from "react";
+import {
+  Box,
+  Flex,
+  Grid,
+  Text,
+  Image,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import ButtonHome from "../components/Button/ButtonHome";
 
 const Overview = () => {
   const navigate = useNavigate();
-
-  const nowPlayingData = [
-    { src: "/Dune.jpg", alt: "Dune", title: "Dune", path: "/movies/:id" },
-    {
-      src: "/Maleficent.jpg",
-      alt: "Maleficent",
-      title: "Maleficent",
-      path: "/movies/maleficent",
-    },
-    {
-      src: "/InsideOut2.jpg",
-      alt: "Inside Out 2",
-      title: "Inside Out 2",
-      path: "/movies/insideout2",
-    },
-    {
-      src: "/FastAndFurious.jpg",
-      alt: "Fast & Furious",
-      title: "Fast & Furious",
-      path: "/movies/fastfurious",
-    },
-    {
-      src: "/GranTurismo.jpg",
-      alt: "Gran Turismo",
-      title: "Gran Turismo",
-      path: "/movies/granturismo",
-    },
-    {
-      src: "/Elemental.jpg",
-      alt: "Elemental",
-      title: "Elemental",
-      path: "/movies/elemental",
-    },
-    { src: "/Soul.jpg", alt: "Soul", title: "Soul", path: "/movies/soul" },
-  ];
-
-  const comingSoonData = [
-    { src: "/Coco.jpg", alt: "Coco", title: "Coco", path: "/movies/coco" },
-    {
-      src: "/ToyStory.jpg",
-      alt: "ToyStory",
-      title: "ToyStory",
-      path: "/movies/toystory",
-    },
-    {
-      src: "/FrozeII.jpg",
-      alt: "FrozeII",
-      title: "FrozeII",
-      path: "/movies/frozen2",
-    },
-    { src: "/Wish.jpg", alt: "Wish", title: "Wish", path: "/movies/wish" },
-    {
-      src: "/TheIncredibles.jpg",
-      alt: "TheIncredibles",
-      title: "TheIncredibles",
-      path: "/movies/incredibles",
-    },
-    {
-      src: "/Ratatouille.jpg",
-      alt: "Ratatouille",
-      title: "Ratatouille",
-      path: "/movies/ratatouille",
-    },
-  ];
-
-  const [showNowPlaying, setShowNowPlaying] = useState(true);
-
-  const movieData = showNowPlaying ? nowPlayingData : comingSoonData;
+  const [playingMovies, setPlayingMovies] = useState([]);
+  const [upcomingMovies, setUpcomingMovies] = useState([]);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [hoveredMovie, setHoveredMovie] = useState(null);
 
   const bg = useColorModeValue("#000000", "#000000");
   const buttonBg = useColorModeValue("#2D2D2D", "#2D2D2D");
@@ -83,28 +25,54 @@ const Overview = () => {
   const buttonHoverBg = useColorModeValue("#3D3D3D", "#3D3D3D");
   const buttonFocusBoxShadow = "0 0 0 4px #FFFFF0";
 
+  useEffect(() => {
+    async function fetchMovies() {
+      try {
+        const [playingResponse, upcomingResponse] = await Promise.all([
+          fetch(`http://localhost:8080/api/movie?isPlaying=true`),
+          fetch(`http://localhost:8080/api/movie?isPlaying=false`),
+        ]);
+
+        if (!playingResponse.ok || !upcomingResponse.ok) {
+          throw new Error("Failed to fetch movies");
+        }
+
+        const playingData = await playingResponse.json();
+        const upcomingData = await upcomingResponse.json();
+
+        setPlayingMovies(playingData);
+        setUpcomingMovies(upcomingData);
+      } catch (error) {
+        console.error("Failed to fetch movies:", error);
+      }
+    }
+
+    fetchMovies();
+  }, []);
+
   const handleMovieClick = (path) => {
     navigate(path);
   };
 
+  const movies = isPlaying ? playingMovies : upcomingMovies;
+
   return (
     <Box bg={bg} color="white" minHeight="100vh">
-      {" "}
-      <Box height="80px" />{" "}
+      <Box height="80px" />
       <Box p="4">
         <Flex justifyContent="center" mb="12">
           <ButtonHome
-            onClick={() => setShowNowPlaying(true)}
-            bg={showNowPlaying ? buttonActiveBg : buttonBg}
-            color={showNowPlaying ? buttonTextColor : buttonInactiveTextColor}
+            onClick={() => setIsPlaying(true)}
+            bg={isPlaying ? buttonActiveBg : buttonBg}
+            color={isPlaying ? buttonTextColor : buttonInactiveTextColor}
             _hover={{ bg: buttonHoverBg }}
             _focus={{ boxShadow: buttonFocusBoxShadow }}
             label="現正熱映"
           />
           <ButtonHome
-            onClick={() => setShowNowPlaying(false)}
-            bg={showNowPlaying ? buttonBg : buttonActiveBg}
-            color={showNowPlaying ? buttonInactiveTextColor : buttonTextColor}
+            onClick={() => setIsPlaying(false)}
+            bg={isPlaying ? buttonBg : buttonActiveBg}
+            color={isPlaying ? buttonInactiveTextColor : buttonTextColor}
             _hover={{ bg: buttonHoverBg }}
             _focus={{ boxShadow: buttonFocusBoxShadow }}
             label="即將上映"
@@ -121,20 +89,50 @@ const Overview = () => {
             gap="6"
             mb="12"
           >
-            {movieData.map((movie, index) => (
+            {movies.map((movie, index) => (
               <Flex
                 key={index}
                 direction="column"
                 alignItems="center"
                 mt={{ base: "6", md: "6", lg: "12" }}
-                onClick={() => handleMovieClick(movie.path)}
+                onClick={() => handleMovieClick(`/movies/${movie.id}`)}
                 cursor="pointer"
+                onMouseEnter={() => setHoveredMovie(index)}
+                onMouseLeave={() => setHoveredMovie(null)}
               >
-                <MovieData
-                  src={movie.src}
-                  alt={movie.alt}
-                  title={movie.title}
-                />
+                <Box
+                  position="relative"
+                  width="200px"
+                  height="300px"
+                  overflow="hidden"
+                  _hover={{
+                    transform: "scale(1.05)",
+                    transition: "transform 0.3s",
+                  }}
+                >
+                  <Image
+                    className="movie-image"
+                    src={movie.poster}
+                    alt={movie.title}
+                    width="100%"
+                    height="100%"
+                    objectFit="cover"
+                  />
+                  {hoveredMovie === index && !isPlaying && (
+                    <Text
+                      position="absolute"
+                      bottom="10px"
+                      left="10px"
+                      bg="rgba(0, 0, 0, 0.7)"
+                      color="white"
+                      p="2"
+                      borderRadius="5px"
+                    >
+                      上映日期:{" "}
+                      {new Date(movie.releaseDate).toLocaleDateString()}
+                    </Text>
+                  )}
+                </Box>
                 <Text mt="8" textAlign="center" color="white">
                   {movie.title}
                 </Text>
