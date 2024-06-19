@@ -17,28 +17,31 @@ import BonusPointsList from "./member/Member/BonusPointsList";
 import FavoritesList from "./member/Member/FavoritesList";
 import Login from "./pages/Login";
 import Movie from "./pages/Movie";
+import { BookingProvider } from "./Context/BookingContext";
 
 function App() {
   return (
     <ChakraProvider>
       <NavBar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/movies" element={<Overview />} />
-        <Route path="/movies/:movieId" element={<Movie />} />
-        <Route path="/theaters" element={<TheaterInfomation />} />
-        <Route path="/booking/:movieId/payment" element={<PaymentLayout />} />
-        <Route path="/booking/:movieId" element={<BookingLayout />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignIn />} />
-        <Route path="/booking/:movieId/seats" element={<SeatLayout />} />
-        <Route path="/reviews" element={<CommentSection />} />
-        <Route path="/member" element={<Profile />} />
-        <Route path="/password" element={<Password />} />
-        <Route path="/orderlist" element={<Orderlist />} />
-        <Route path="/point" element={<BonusPointsList />} />
-        <Route path="/favorite" element={<FavoritesList />} />
-      </Routes>
+      <BookingProvider>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/movies" element={<Overview />} />
+          <Route path="/movies/:movieId" element={<Movie />} />
+          <Route path="/theaters" element={<TheaterInfomation />} />
+          <Route path="/booking/:movieId/order" element={<PaymentLayout />} />
+          <Route path="/booking/:movieId" element={<BookingLayout />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignIn />} />
+          <Route path="/booking/:movieId/seats" element={<SeatLayout />} />
+          <Route path="/reviews" element={<CommentSection />} />
+          <Route path="/member" element={<Profile />} />
+          <Route path="/password" element={<Password />} />
+          <Route path="/orderlist" element={<Orderlist />} />
+          <Route path="/point" element={<BonusPointsList />} />
+          <Route path="/favorite" element={<FavoritesList />} />
+        </Routes>
+      </BookingProvider>
       <Footer />
     </ChakraProvider>
   );

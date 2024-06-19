@@ -27,7 +27,7 @@ const PaymentLayout = () => {
   return (
     <>
       <div className="payment-container">
-        <MovieInfomation movieInfomation={movieInfomation} />
+        <MovieInfomation />
         <SelectTicket
           movieInfomation={movieInfomation}
           ticketTypes={ticketTypes}

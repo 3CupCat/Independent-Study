@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Form, Button, ButtonGroup, Row, Col, Alert } from "react-bootstrap";
 import { useMediaQuery } from "react-responsive";
 import { useNavigate, useParams } from "react-router-dom";
 import "./booking.css";
 import axios from "axios";
+import { BookingContext } from "../Context/BookingContext";
 
 const Booking = () => {
   const isLargeScreen = useMediaQuery({ query: "(min-width: 768px)" });
+  const { bookingData, updateBookingData } = useContext(BookingContext);
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedTheaterId, setSelectedTheaterId] = useState(null);
   const [selectedDate, setSelectedDate] = useState("");
@@ -149,6 +151,20 @@ const Booking = () => {
     if (!isShowSelected) {
       setShowAlert(true);
     } else {
+      const selectedShow = shows[selectedShowIndex];
+      updateBookingData({
+        theaterId: selectedTheaterId,
+        theaterName: selectedTheater.theaterName,
+        address: selectedTheater.address,
+        showTimeId: selectedShow.showTimeId,
+        showTime: selectedShow.showTime,
+        screenId: selectedShow.screenId,
+        screenName: selectedShow.screenName,
+        screenClass: selectedShow.screenClass,
+        title: "", // 該頁未Fetch電影資料
+        poster: "",
+        seatStatusId: [], // 初始化為未選擇座位
+      });
       const newUrl = `${window.location.pathname}/seats`;
       navigate(newUrl);
     }
