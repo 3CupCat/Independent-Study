@@ -16,6 +16,7 @@ export const BookingProvider = ({ children }) => {
   //   title: "",
   //   poster: "",
   //   seatStatusId: [],
+  //   ticketTypeId: [],
   // });
 
   //測試用假資料
@@ -32,6 +33,7 @@ export const BookingProvider = ({ children }) => {
     poster:
       "https://www.miranewcinemas.com/MiramarApp/Resource/8dc5e37386475be_S.jpg",
     seatStatusId: ["1排10號", "1排11號"],
+    ticketTypeId: [],
   });
 
   const updateBookingData = (newData) => {
@@ -45,9 +47,27 @@ export const BookingProvider = ({ children }) => {
     }));
   };
 
+  const addTicketTypeId = (ticketId) => {
+    setBookingData((prevData) => ({
+      ...prevData,
+      ticketTypeId: [...prevData.ticketTypeId, ticketId],
+    }));
+  };
+
+  const removeTicketTypeId = (ticketId) => {
+    setBookingData((prevData) => {
+      const updatedTicketTypeId = [...prevData.ticketTypeId];
+      const index = updatedTicketTypeId.lastIndexOf(ticketId);
+      if (index !== -1) {
+        updatedTicketTypeId.splice(index, 1);
+      }
+      return { ...prevData, ticketTypeId: updatedTicketTypeId };
+    });
+  };
+
   return (
     <BookingContext.Provider
-      value={{ bookingData, updateBookingData, addSeatStatusId }}
+      value={{ bookingData, updateBookingData, addSeatStatusId, addTicketTypeId, removeTicketTypeId }}
     >
       {children}
     </BookingContext.Provider>

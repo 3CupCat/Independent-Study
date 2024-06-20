@@ -164,6 +164,7 @@ const Booking = () => {
         title: "", // 該頁未Fetch電影資料
         poster: "",
         seatStatusId: [], // 初始化為未選擇座位
+        ticketTypeId: [],
       });
       const newUrl = `${window.location.pathname}/seats`;
       navigate(newUrl);

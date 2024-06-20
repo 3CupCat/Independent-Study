@@ -1,182 +1,178 @@
-import React, { useState } from "react";
-import PropTypes from "prop-types";
-import { Container } from "react-bootstrap";
+import React, { useContext, useState, useEffect } from "react";
+import { Container, Row, Col, Button } from "react-bootstrap";
 import { useMediaQuery } from "react-responsive";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import { BookingContext } from "../Context/BookingContext";
 import "./payment.css";
 
-const SelectTicket = ({ movieInfomation, ticketTypes }) => {
+const SelectTicket = () => {
+  const { movieId } = useParams();
+  const { bookingData, addTicketTypeId, removeTicketTypeId } = useContext(BookingContext);
   const isLargeScreen = useMediaQuery({ query: "(min-width: 768px)" });
 
-  const [ticketCounts, setTicketCounts] = useState({
-    adult: 0,
-    child: 0,
-    student: 0,
-    bonus: 0,
-  });
+  const [ticketTypes, setTicketTypes] = useState([]);
+  const [ticketCounts, setTicketCounts] = useState({});
+  const [ticketToRemove, setTicketToRemove] = useState(null);
 
-  const bonusTicketPrice = 0;
+  useEffect(() => {
+    const fetchTicketTypeDetail = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/booking/${movieId}/order`
+        );
+        const data = response.data;
+        setTicketTypes(data);
 
-  const subTotalPrice =
-    ticketTypes.reduce((total, ticket) => {
-      return total + ticketCounts[ticket.type] * ticket.price;
-    }, 0) +
-    ticketCounts.bonus * bonusTicketPrice;
+        const initialCounts = data.reduce((counts, ticket) => {
+          counts[ticket.ticketType] = 0;
+          return counts;
+        }, {});
+        setTicketCounts(initialCounts);
+      } catch (error) {
+        console.error("Error fetching ticket types", error);
+      }
+    };
 
-  const bookingFee =
-    ticketTypes.reduce((total, ticket) => {
-      return total + Math.floor(ticketCounts[ticket.type] * ticket.price * 0.1);
-    }, 0) + Math.floor(ticketCounts.bonus * bonusTicketPrice * 0.1);
+    fetchTicketTypeDetail();
+  }, [movieId]);
 
-  const totalCount =
-    ticketTypes.reduce((total, ticket) => {
-      return total + ticketCounts[ticket.type];
-    }, 0) + ticketCounts.bonus;
+  useEffect(() => {
+    if (ticketToRemove !== null) {
+      removeTicketTypeId(ticketToRemove);
+      setTicketToRemove(null);
+    }
+  }, [ticketToRemove, removeTicketTypeId]);
+
+  const subTotalPrice = ticketTypes.reduce((total, ticket) => {
+    return total + ticketCounts[ticket.ticketType] * ticket.unitPrice;
+  }, 0);
+
+  const bookingFee = ticketTypes.reduce((total, ticket) => {
+    return (
+      total +
+      Math.floor(ticketCounts[ticket.ticketType] * ticket.unitPrice * 0.1)
+    );
+  }, 0);
+
+  const totalCount = ticketTypes.reduce((total, ticket) => {
+    return total + ticketCounts[ticket.ticketType];
+  }, 0);
 
   const totalPrice = subTotalPrice + bookingFee;
 
-  const handleAddTicket = (type) => {
-    if (totalCount < movieInfomation.seat.length) {
+  const handleAddTicket = (ticket) => {
+    if (totalCount < bookingData.seatStatusId.length) {
       setTicketCounts((prevCounts) => ({
         ...prevCounts,
-        [type]: prevCounts[type] + 1,
+        [ticket.ticketType]: prevCounts[ticket.ticketType] + 1,
       }));
+      addTicketTypeId(ticket.id);
     }
   };
 
-  const handleMinusTicket = (type) => {
+  const handleMinusTicket = (ticket) => {
+    const newCount = Math.max(ticketCounts[ticket.ticketType] - 1, 0);
+    if (newCount < ticketCounts[ticket.ticketType]) {
+      removeTicketTypeId(ticket.id);
+    }
     setTicketCounts((prevCounts) => ({
       ...prevCounts,
-      [type]: Math.max(prevCounts[type] - 1, 0),
+      [ticket.ticketType]: newCount,
     }));
   };
 
-  return (
-    <Container className="my-4">
-      <h2 className="text-center">選擇電影票</h2>
-      <div
-        className={
-          isLargeScreen ? "ticket-counter-m mb-3" : "ticket-counter-sm mb-3"
-        }
-      >
-        已選擇 {totalCount} / {movieInfomation.seat.length} 張票
-      </div>
-      <div className="wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>票種</th>
-              <th>單價</th>
-              <th>數量</th>
-              <th>小計</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ticketTypes.map((ticket) => (
-              <tr key={ticket.type}>
-                <td>{ticket.label}</td>
-                <td>${ticket.price}</td>
-                <td>
-                  <button
-                    className={
-                      ticketCounts[ticket.type] === 0
-                        ? "count-button-disabled"
-                        : "count-button"
-                    }
-                    onClick={() => handleMinusTicket(ticket.type)}
-                  >
-                    -
-                  </button>
-                  <span className={isLargeScreen ? "mx-2" : null}>
-                    {ticketCounts[ticket.type]}
-                  </span>
-                  <button
-                    className={
-                      totalCount === movieInfomation.seat.length
-                        ? "count-button-disabled"
-                        : "count-button"
-                    }
-                    onClick={() => handleAddTicket(ticket.type)}
-                  >
-                    +
-                  </button>
-                </td>
-                <td>${ticketCounts[ticket.type] * ticket.price}</td>
-              </tr>
-            ))}
-            <tr>
-              <td>紅利點數</td>
-              <td>2500點</td>
-              <td>
-                <button
-                  className={
-                    ticketCounts.bonus === 0
-                      ? "count-button-disabled"
-                      : "count-button"
-                  }
-                  onClick={() => handleMinusTicket("bonus")}
-                >
-                  -
-                </button>
-                <span className={isLargeScreen ? "mx-2" : null}>
-                  {ticketCounts.bonus}
-                </span>
-                <button
-                  className={
-                    totalCount === movieInfomation.seat.length
-                      ? "count-button-disabled"
-                      : "count-button"
-                  }
-                  onClick={() => handleAddTicket("bonus")}
-                >
-                  +
-                </button>
-              </td>
-              <td>${ticketCounts.bonus * bonusTicketPrice}</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colSpan="3" className="text-s">
-                小計
-              </td>
-              <td>${subTotalPrice}</td>
-            </tr>
-            <tr>
-              <td colSpan="3" className="text-s">
-                預訂費 (10%)
-              </td>
-              <td>${bookingFee}</td>
-            </tr>
-            <tr>
-              <td colSpan="3" className="text-s">
-                總計
-              </td>
-              <td>${totalPrice}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </Container>
-  );
-};
+  const handleSendOrder = () => {
+    console.log({bookingData});
+  }
 
-SelectTicket.propTypes = {
-  movieInfomation: PropTypes.shape({
-    theaterName: PropTypes.string.isRequired,
-    movieName: PropTypes.string.isRequired,
-    movieImage: PropTypes.string.isRequired,
-    showTime: PropTypes.string.isRequired,
-    screen: PropTypes.string.isRequired,
-    seat: PropTypes.arrayOf(PropTypes.string).isRequired,
-    quantity: PropTypes.number.isRequired,
-  }).isRequired,
-  ticketTypes: PropTypes.arrayOf(
-    PropTypes.shape({
-      type: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      price: PropTypes.number.isRequired,
-    })
-  ).isRequired,
+  return (
+      <Container className="my-4">
+        <h2 className="text-center">選擇電影票</h2>
+        <div
+          className={
+            isLargeScreen ? "ticket-counter-m mb-3" : "ticket-counter-sm mb-3"
+          }
+        >
+          已選擇 {totalCount} / {bookingData.seatStatusId.length} 張票
+        </div>
+        <div className="wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>票種</th>
+                <th>單價</th>
+                <th>數量</th>
+                <th>小計</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ticketTypes.map((ticket) => (
+                <tr key={ticket.id}>
+                  <td>{ticket.ticketType}</td>
+                  <td>
+                    {ticket.ticketType === "紅利點數" ? "250點" : `$${ticket.unitPrice}`}
+                  </td>
+                  <td>
+                    <button
+                      className={
+                        ticketCounts[ticket.ticketType] === 0
+                          ? "count-button-disabled"
+                          : "count-button"
+                      }
+                      onClick={() => handleMinusTicket(ticket)}
+                    >
+                      -
+                    </button>
+                    <span className={isLargeScreen ? "mx-2" : null}>
+                      {ticketCounts[ticket.ticketType]}
+                    </span>
+                    <button
+                      className={
+                        totalCount === bookingData.seatStatusId.length
+                          ? "count-button-disabled"
+                          : "count-button"
+                      }
+                      onClick={() => handleAddTicket(ticket)}
+                    >
+                      +
+                    </button>
+                  </td>
+                  <td>${ticketCounts[ticket.ticketType] * ticket.unitPrice}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan="3" className="text-s">
+                  小計
+                </td>
+                <td>${subTotalPrice}</td>
+              </tr>
+              <tr>
+                <td colSpan="3" className="text-s">
+                  預訂費 (10%)
+                </td>
+                <td>${bookingFee}</td>
+              </tr>
+              <tr>
+                <td colSpan="3" className="text-s">
+                  總計
+                </td>
+                <td>${totalPrice}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <Row className="d-flex justify-content-center my-4">
+          <Col sm={4} md={4} lg={3}>
+            <Button variant="outline-light" className="w-100" onClick={handleSendOrder}>
+              確認訂單
+            </Button>
+          </Col>
+        </Row>
+      </Container>
+  );
 };
 
 export default SelectTicket;
