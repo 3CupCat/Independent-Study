@@ -32,7 +32,7 @@ export const BookingProvider = ({ children }) => {
     title: "猩球崛起：王國誕生",
     poster:
       "https://www.miranewcinemas.com/MiramarApp/Resource/8dc5e37386475be_S.jpg",
-    seatStatusId: ["1排10號", "1排11號"],
+    seatStatusId: [23, 24],
     ticketTypeId: [],
   });
 

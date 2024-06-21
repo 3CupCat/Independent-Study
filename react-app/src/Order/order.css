@@ -61,19 +61,34 @@ table {
   font-family: "Oswald", sans-serif;
   border-collapse: collapse;
   text-align: center;
+  width: 100%;
 }
 
 th {
   background-color: #8e8e8e;
   color: #ffffff;
-  width: 25vw;
+  width: 30%;
+  height: 75px;
+}
+
+th:nth-of-type(even) {
+  background-color: #8e8e8e;
+  color: #ffffff;
+  width: 20%;
   height: 75px;
 }
 
 td {
   background-color: #ffffff;
   color: black;
-  width: 25vw;
+  width: 30%;
+  height: 50px;
+}
+
+td:nth-of-type(even) {
+  background-color: #ffffff;
+  color: black;
+  width: 20%;
   height: 50px;
 }
 
@@ -91,7 +106,23 @@ tr:nth-of-type(even) td {
 
 .text-s {
   text-align: start;
-  padding-left: 10dvw;
+  padding-left: 12vw;
+}
+
+.send-order-toast{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+}
+
+.send-order-modal-title{
+  color: black;
+}
+
+.send-order-modal-body{
+  color: black;
 }
 
 .payment-container {

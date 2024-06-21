@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { Container, Row, Col, Image } from "react-bootstrap";
 import { useMediaQuery } from "react-responsive";
 import { BookingContext } from "../Context/BookingContext";
-import "./payment.css";
+import "./order.css";
 
 const MovieInfomation = () => {
   const { bookingData } = useContext(BookingContext);

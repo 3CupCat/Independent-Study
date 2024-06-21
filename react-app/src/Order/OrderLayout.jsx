@@ -1,9 +1,9 @@
 import MovieInfomation from "./MovieInfomation";
 import SelectTicket from "./SelectTicket";
 import React from "react";
-import "./payment.css";
+import "./order.css";
 
-const PaymentLayout = () => {
+const OrderLayout = () => {
   return (
     <>
       <div className="payment-container">
@@ -14,4 +14,4 @@ const PaymentLayout = () => {
   );
 };
 
-export default PaymentLayout;
+export default OrderLayout;

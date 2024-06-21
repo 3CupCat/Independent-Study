@@ -1,22 +1,39 @@
 import React, { useContext, useState, useEffect } from "react";
-import { Container, Row, Col, Button, Spinner, Alert } from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Button,
+  Spinner,
+  Alert,
+  Modal,
+  Toast,
+} from "react-bootstrap";
 import { useMediaQuery } from "react-responsive";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BookingContext } from "../Context/BookingContext";
-import "./payment.css";
+import "./order.css";
 
 const SelectTicket = () => {
   const { movieId } = useParams();
-  const { bookingData, addTicketTypeId, removeTicketTypeId } = useContext(BookingContext);
+  const {
+    bookingData,
+    updateBookingData,
+    addTicketTypeId,
+    removeTicketTypeId,
+  } = useContext(BookingContext);
   const isLargeScreen = useMediaQuery({ query: "(min-width: 768px)" });
+  const navigate = useNavigate();
 
   const [ticketTypes, setTicketTypes] = useState([]);
   const [ticketCounts, setTicketCounts] = useState({});
   const [ticketToRemove, setTicketToRemove] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
     const fetchTicketTypeDetail = async () => {
@@ -95,30 +112,56 @@ const SelectTicket = () => {
   };
 
   const handleSendOrder = async () => {
+    // 防止重複提交
+    if (toastMessage !== "") {
+      setShowModal(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
-    setSuccess(null);
     try {
-      const response = await axios.post(`http://localhost:8080/booking/${movieId}/order`, bookingData);
+      const response = await axios.post(
+        `http://localhost:8080/booking/${movieId}/order`,
+        bookingData
+      );
 
       if (response.data) {
-        // 創建一個新的空白窗口
-        const newWindow = window.open();
-  
-        // 在新窗口的文檔中寫入表單HTML並提交
-        newWindow.document.open();
-        newWindow.document.write(response.data);
-        newWindow.document.close();
+        setToastMessage("正在為您導轉至付款頁面...");
+        setShowToast(true);
+        setTimeout(() => {
+          const newWindow = window.open();
+          newWindow.document.open();
+          newWindow.document.write(response.data);
+          newWindow.document.close();
+          navigate("/member");
+        }, 3000);
       } else {
-        setSuccess("訂單提交成功，但未收到付款表單");
+        setToastMessage("正在為您導轉至歷史訂單...");
+        setShowToast(true);
+        setTimeout(() => {
+          navigate("/member");
+        }, 3000);
       }
 
       console.log(response.data); // 在這裡處理後端的回應
-    } catch (err) {
-      setError("訂單提交失敗，請稍後再試。");
-      console.error("Error submitting order", err);
+    } catch (error) {
+      if (error.response) {
+        setError(error.response.data);
+        console.log(error.response.data);
+        console.log(error.response.status);
+        console.log(error.response.headers);
+      } else if (error.request) {
+        setError("訂單提交失敗，請稍後再試。");
+        console.log(error.request);
+      } else {
+        setError("訂單提交失敗，請稍後再試。");
+        console.log("Error", error.message);
+      }
+      console.log(error.config);
     } finally {
       setLoading(false);
+      setShowModal(false);
     }
   };
 
@@ -132,7 +175,7 @@ const SelectTicket = () => {
       >
         已選擇 {totalCount} / {bookingData.seatStatusId.length} 張票
       </div>
-      <div className="wrap">
+      <div className="wrap mb-3">
         <table>
           <thead>
             <tr>
@@ -147,7 +190,9 @@ const SelectTicket = () => {
               <tr key={ticket.id}>
                 <td>{ticket.ticketType}</td>
                 <td>
-                  {ticket.ticketType === "紅利點數" ? "250點" : `$${ticket.unitPrice}`}
+                  {ticket.ticketType === "紅利點數"
+                    ? "250點"
+                    : `$${ticket.unitPrice}`}
                 </td>
                 <td>
                   <button
@@ -200,32 +245,56 @@ const SelectTicket = () => {
           </tfoot>
         </table>
       </div>
+      {error && <Alert variant="danger">{error}</Alert>}
       <Row className="d-flex justify-content-center my-4">
         <Col sm={4} md={4} lg={3}>
           <Button
             variant="outline-light"
             className="w-100"
-            onClick={handleSendOrder}
+            onClick={() => setShowModal(true)}
             disabled={loading}
           >
             {loading ? <Spinner animation="border" size="sm" /> : "確認訂單"}
           </Button>
         </Col>
       </Row>
-      {error && (
-        <Row className="d-flex justify-content-center mt-3">
-          <Col sm={8} md={6} lg={4}>
-            <Alert variant="danger">{error}</Alert>
-          </Col>
-        </Row>
-      )}
-      {success && (
-        <Row className="d-flex justify-content-center mt-3">
-          <Col sm={8} md={6} lg={4}>
-            <Alert variant="success">{success}</Alert>
-          </Col>
-        </Row>
-      )}
+      <Modal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        backdrop="static"
+        centered={!isLargeScreen}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title className="send-order-modal-title">
+            購買票券須知事項
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="send-order-modal-body">
+          這裡顯示購買票券須知事項的內容。Lorem ipsum dolor sit amet consectetur
+          adipisicing elit. Praesentium earum molestias recusandae, iusto
+          dolorum debitis harum laudantium non itaque similique eum
+          exercitationem dignissimos aperiam nam. Aliquid dolores itaque
+          asperiores beatae.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            取消
+          </Button>
+          <Button variant="primary" onClick={handleSendOrder}>
+            確認
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Toast
+        onClose={() => setShowToast(false)}
+        show={showToast}
+        delay={3000}
+        autohide
+        bg="dark"
+        className="send-order-toast"
+      >
+        <Toast.Body>{toastMessage}</Toast.Body>
+      </Toast>
     </Container>
   );
 };

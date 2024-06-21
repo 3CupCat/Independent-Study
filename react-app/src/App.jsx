@@ -4,7 +4,7 @@ import Home from "./pages/Home";
 import Overview from "./pages/Overview";
 import Footer from "./components/Footer";
 import TheaterInfomation from "./TheaterInfomation/TheaterInfomation";
-import PaymentLayout from "./Payment/PaymentLayout";
+import OrderLayout from "./Order/OrderLayout";
 import BookingLayout from "./Booking/BookingLayout";
 import SignIn from "./Booking/SignIn";
 import { ChakraProvider } from "@chakra-ui/react";
@@ -29,7 +29,7 @@ function App() {
           <Route path="/movies" element={<Overview />} />
           <Route path="/movies/:movieId" element={<Movie />} />
           <Route path="/theaters" element={<TheaterInfomation />} />
-          <Route path="/booking/:movieId/order" element={<PaymentLayout />} />
+          <Route path="/booking/:movieId/order" element={<OrderLayout />} />
           <Route path="/booking/:movieId" element={<BookingLayout />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignIn />} />
