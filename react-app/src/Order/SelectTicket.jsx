@@ -14,6 +14,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BookingContext } from "../Context/BookingContext";
 import "./order.css";
+import Cookies from 'js-cookie';
 
 const SelectTicket = () => {
   const { movieId } = useParams();
@@ -34,6 +35,7 @@ const SelectTicket = () => {
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     const fetchTicketTypeDetail = async () => {
@@ -111,6 +113,16 @@ const SelectTicket = () => {
     }));
   };
 
+  const isLogin = async () => {
+    try {
+      const token = Cookies.get('token');
+      return !!token;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  };
+
   const handleSendOrder = async () => {
     // 防止重複提交
     if (toastMessage !== "") {
@@ -163,6 +175,19 @@ const SelectTicket = () => {
       setLoading(false);
       setShowModal(false);
     }
+  };
+
+  const handleOrderConfirmation = async () => {
+    const loggedIn = await isLogin();
+    if (loggedIn) {
+      setShowModal(true);
+    } else {
+      setShowLoginModal(true);
+    }
+  };
+
+  const handleRedirect = () => {
+    navigate("/login");
   };
 
   return (
@@ -251,7 +276,7 @@ const SelectTicket = () => {
           <Button
             variant="outline-light"
             className="w-100"
-            onClick={() => setShowModal(true)}
+            onClick={handleOrderConfirmation}
             disabled={loading}
           >
             {loading ? <Spinner animation="border" size="sm" /> : "確認訂單"}
@@ -282,6 +307,29 @@ const SelectTicket = () => {
           </Button>
           <Button variant="primary" onClick={handleSendOrder}>
             確認
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal
+        show={showLoginModal}
+        onHide={() => setShowLoginModal(false)}
+        backdrop="static"
+        centered={!isLargeScreen}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title className="send-order-modal-title">
+            您還未登入
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="send-order-modal-body">
+          快點去登入
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowLoginModal(false)}>
+            取消
+          </Button>
+          <Button variant="primary" onClick={handleRedirect}>
+          前往登入頁面
           </Button>
         </Modal.Footer>
       </Modal>
