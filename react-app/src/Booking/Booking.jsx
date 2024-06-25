@@ -1,10 +1,22 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Form, Button, ButtonGroup, Row, Col, Alert } from "react-bootstrap";
+import {
+  Container,
+  Form,
+  Button,
+  ButtonGroup,
+  Row,
+  Col,
+  Alert,
+  Spinner,
+  Modal,
+} from "react-bootstrap";
 import { useMediaQuery } from "react-responsive";
 import { useNavigate, useParams } from "react-router-dom";
-import "./booking.css";
 import axios from "axios";
 import { BookingContext } from "../Context/BookingContext";
+import debounce from "lodash.debounce";
+import { LuMapPin, LuMapPinOff } from "react-icons/lu";
+import "./booking.css";
 
 const Booking = () => {
   const isLargeScreen = useMediaQuery({ query: "(min-width: 768px)" });
@@ -18,6 +30,12 @@ const Booking = () => {
   const navigate = useNavigate();
   const { movieId } = useParams();
   const [showDetail, setShowDetail] = useState([]);
+
+  const [locatedCity, setLocatedCity] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(true);
+  const [error, setError] = useState("");
+  const [isGeoPermissionGranted, setIsGeoPermissionGranted] = useState(false);
 
   useEffect(() => {
     const fetchShowDetail = async () => {
@@ -80,6 +98,13 @@ const Booking = () => {
     const firstAvailableCity = availableCities.find((city) => !city.disabled);
     setSelectedCity(firstAvailableCity ? firstAvailableCity.name : "");
   }, [showDetail]);
+
+  // 監聽 locatedCity 的變化
+  useEffect(() => {
+    if (locatedCity && cities.includes(locatedCity)) {
+      setSelectedCity(locatedCity);
+    }
+  }, [locatedCity]);
 
   // 影城依id由小~大排序
   const theaters = showDetail
@@ -181,26 +206,124 @@ const Booking = () => {
     return date.toTimeString().split(" ")[0].substring(0, 5);
   }
 
+  const handleAllowGeolocation = () => {
+    setShowModal(false);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          debouncedGetCityName(latitude, longitude);
+          setIsGeoPermissionGranted(true);
+        },
+        (error) => {
+          console.error("Error getting geolocation: ", error);
+          showErrorAlert("無法取得定位資訊，請檢查您的設定或稍後再試。");
+        }
+      );
+    } else {
+      showErrorAlert("您的瀏覽器不支援地理定位。");
+    }
+  };
+
+  const getCityName = async (latitude, longitude) => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+      );
+      const data = await response.json();
+      let city =
+        data.address.city ||
+        data.address.town ||
+        data.address.village ||
+        "無法取得定位資訊";
+
+      city = city.replace("臺", "台");
+      setLocatedCity(city);
+    } catch (error) {
+      console.error("Error fetching city name: ", error);
+      showErrorAlert("無法取得定位資訊，請稍後再試。");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const debouncedGetCityName = debounce(getCityName, 500);
+
+  const handleRetry = () => {
+    setLocatedCity("");
+    setError(null);
+    setShowModal(true);
+    setIsGeoPermissionGranted(false);
+  };
+
+  const showErrorAlert = (errorMsg) => {
+    setError(errorMsg);
+  };
+
+  const closeErrorAlert = () => {
+    setError("");
+  };
+
   return (
-    <>
+    <Container className="booking-container">
+      {loading && (
+        <div className="loading-overlay">
+          <Spinner animation="border" role="status" className="custom-spinner">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      )}
       <Form.Group controlId="city" className="mb-3">
         <Form.Label>請選擇地區：</Form.Label>
-        <Form.Select
-          value={selectedCity}
-          onChange={(e) => {
-            setSelectedCity(e.target.value);
-            setSelectedTheaterId(null);
-            setSelectedShowIndex(null);
-            setIsShowSelected(false);
-          }}
-        >
-          {availableCities.map((city) => (
-            <option key={city.name} value={city.name} disabled={city.disabled}>
-              {city.name}
-            </option>
-          ))}
-        </Form.Select>
+        <div className="icon-inside-select">
+          <Form.Select
+            value={selectedCity}
+            onChange={(e) => {
+              setSelectedCity(e.target.value);
+              setSelectedTheaterId(null);
+              setSelectedShowIndex(null);
+              setIsShowSelected(false);
+            }}
+            className="hide-select-arrow"
+          >
+            {availableCities.map((city) => (
+              <option
+                key={city.name}
+                value={city.name}
+                disabled={city.disabled}
+              >
+                {city.name}
+              </option>
+            ))}
+          </Form.Select>
+          {isGeoPermissionGranted ? (
+            <LuMapPin
+              className="icon geo-permission-granted"
+              size={26}
+              onClick={handleRetry}
+            />
+          ) : (
+            <LuMapPinOff
+              className="icon not-geo-permission-granted"
+              size={26}
+              onClick={handleRetry}
+            />
+          )}
+        </div>
       </Form.Group>
+
+      {error && (
+        <Alert
+          className="mb-3"
+          variant="danger"
+          onClose={closeErrorAlert}
+          dismissible
+        >
+          {error}
+        </Alert>
+      )}
+
       <Form.Group controlId="theater" className="mb-3">
         <Form.Label>請選擇影城：</Form.Label>
         <Form.Select
@@ -210,6 +333,7 @@ const Booking = () => {
             setSelectedShowIndex(null);
             setIsShowSelected(false);
           }}
+          className="hide-select-arrow"
         >
           {theaters.map((theater) => (
             <option value={theater.theaterId} key={theater.theaterId}>
@@ -266,7 +390,30 @@ const Booking = () => {
           </Button>
         </Col>
       </Row>
-    </>
+
+      <Modal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        centered={!isLargeScreen}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title className="geolocation-modal-title">
+            允許地理定位
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="geolocation-modal-body">
+          我們需要您的許可來獲取您的地理位置以提供更好的服務。
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            拒絕
+          </Button>
+          <Button variant="primary" onClick={handleAllowGeolocation}>
+            允許
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </Container>
   );
 };
 
