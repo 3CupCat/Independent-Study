@@ -1,24 +1,9 @@
-import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Button,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  useDisclosure,
-  Text,
-  Flex,
-} from "@chakra-ui/react";
+import React, { useEffect, useState } from 'react';
+import { Box, Table, Tbody, Tr, Th, Td, Thead, VStack, Text, HStack, Button, useDisclosure, Link, Flex } from '@chakra-ui/react';
+import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton } from '@chakra-ui/react';
+import { ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, ArrowRightIcon } from '@chakra-ui/icons';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const BonusPoints = () => {
   const [points, setPoints] = useState([]);
@@ -28,14 +13,28 @@ const BonusPoints = () => {
   const pointsPerPage = 10;
 
   useEffect(() => {
-    // 插入假資料
-    const fakePoints = Array.from({ length: 30 }, (_, i) => ({
-      id: i + 1,
-      date: `2023-01-${String(i + 1).padStart(2, "0")}`,
-      points: (i + 1) * 10,
-      description: `Description for bonus point ${i + 1}`,
-    }));
-    setPoints(fakePoints);
+    const fetchBonus = async () => {
+      const token = Cookies.get('token');
+      if (!token) {
+        alert('未找到token，請重新登錄');
+        return;
+      }
+
+      try {
+        const response = await axios.get('http://localhost:8080/bonus/BonusPoints', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log('Bonus data:', response.data);
+        setPoints(response.data);
+      } catch (error) {
+        console.error('Error fetching Bonus Point:', error);
+        alert('無法獲取訂單歷史記錄，請稍後再試');
+      }
+    };
+
+    fetchBonus();
   }, []);
 
   const handlePageChange = (pageNumber) => {
@@ -52,6 +51,10 @@ const BonusPoints = () => {
     setSelectedPoint(null);
   };
 
+  const formatDate = (dateString) => {
+    return dateString.replace(/-/g, '/');
+  };
+
   const indexOfLastPoint = currentPage * pointsPerPage;
   const indexOfFirstPoint = indexOfLastPoint - pointsPerPage;
   const currentPoints = points.slice(indexOfFirstPoint, indexOfLastPoint);
@@ -59,117 +62,77 @@ const BonusPoints = () => {
   const totalPages = Math.ceil(points.length / pointsPerPage);
 
   return (
-    <Box
-      width="100%"
-      maxWidth="800px"
-      margin="0 auto"
-      padding="20px"
-      boxShadow="0 0 10px rgba(0, 0, 0, 0.1)"
-      backgroundColor="#fff"
-      borderRadius="8px"
-    >
-      <Text
-        as="h2"
-        color={"black"}
-        textAlign="center"
-        fontSize="24px"
-        marginBottom="20px"
-      >
-        紅利點數
-      </Text>
-      <Box maxHeight="400px" overflowY="auto">
-        <Table variant="striped" colorScheme="teal">
-          <Thead>
-            <Tr>
-              <Th>編號</Th>
-              <Th>日期</Th>
-              <Th>點數</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {currentPoints.map((point) => (
-              <Tr
-                key={point.id}
-                onClick={() => handleShowModal(point)}
-                _hover={{ cursor: "pointer", backgroundColor: "#f5f5f5" }}
-              >
-                <Td>{point.id}</Td>
-                <Td>{point.date}</Td>
-                <Td>{point.points}</Td>
+    <Box width="100%" p={4} boxShadow="md" bg="white" borderRadius="md" color="black">
+      <VStack spacing={4} align="center">
+        <Text fontSize="2xl" fontWeight="bold">紅利點數</Text>
+        <Box maxHeight="100vh" overflowY="auto" width="100%">
+          <Table variant="striped" colorScheme="white" size="sm">
+            <Thead>
+              <Tr>
+                <Th color="white">紅利編號</Th>
+                <Th color="white">訂單日期</Th>
+                <Th color="white">點數</Th>
               </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </Box>
-      <Flex justifyContent="center" marginTop="20px">
-        <Button
-          onClick={() => handlePageChange(1)}
-          disabled={currentPage === 1}
-          margin="0 2px"
-        >
-          First
-        </Button>
-        <Button
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          margin="0 2px"
-        >
-          Prev
-        </Button>
-        {[...Array(totalPages).keys()].map((number) => (
-          <Button
-            key={number + 1}
-            onClick={() => handlePageChange(number + 1)}
-            isActive={number + 1 === currentPage}
-            margin="0 2px"
-          >
-            {number + 1}
-          </Button>
-        ))}
-        <Button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          margin="0 2px"
-        >
-          Next
-        </Button>
-        <Button
-          onClick={() => handlePageChange(totalPages)}
-          disabled={currentPage === totalPages}
-          margin="0 2px"
-        >
-          Last
-        </Button>
-      </Flex>
+            </Thead>
+            <Tbody>
+              {points.length === 0 ? (
+                <Tr>
+                  <Td colSpan="3">
+                    <Flex justify="center" align="center">
+                      <Text color="black" fontSize="24px" fontWeight="bold" mt={3}>
+                        目前沒有紅利點數! 快去蒐集吧! <Link href="/" color="teal.500">點擊這裡</Link>
+                      </Text>
+                    </Flex>
+                  </Td>
+                </Tr>
+              ) : (
+                currentPoints.map((point) => (
+                  <Tr key={point.bonus.id} onClick={() => handleShowModal(point)} _hover={{ cursor: 'pointer', backgroundColor: 'gray.100' }}>
+                    <Td>{point.bonus.id}</Td>
+                    <Td>{formatDate(point.order.orderDate.split(' ')[0])}</Td>
+                    <Td>{point.bonus.bonus}</Td>
+                  </Tr>
+                ))
+              )}
+            </Tbody>
+          </Table>
+        </Box>
+        <HStack spacing={2}>
+          <Button onClick={() => handlePageChange(1)} disabled={currentPage === 1} leftIcon={<ArrowLeftIcon />}>First</Button>
+          <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} leftIcon={<ChevronLeftIcon />}>Prev</Button>
+          {[...Array(totalPages).keys()].map(number => (
+            <Button key={number + 1} onClick={() => handlePageChange(number + 1)} isActive={number + 1 === currentPage}>
+              {number + 1}
+            </Button>
+          ))}
+          <Button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} rightIcon={<ChevronRightIcon />}>Next</Button>
+          <Button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} rightIcon={<ArrowRightIcon />}>Last</Button>
+        </HStack>
 
-      {selectedPoint && (
-        <Modal isOpen={isOpen} onClose={handleCloseModal} isCentered>
-          <ModalOverlay />
-          <ModalContent maxWidth="350px" maxHeight="400px">
-            <ModalHeader color="black">紅利點數詳細資料</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Text color="black">
-                <strong>編號:</strong> {selectedPoint.id}
-              </Text>
-              <Text color="black">
-                <strong>日期:</strong> {selectedPoint.date}
-              </Text>
-              <Text color="black">
-                <strong>點數:</strong> {selectedPoint.points}
-              </Text>
-              <Text color="black">
-                <strong>描述:</strong> {selectedPoint.description}
-              </Text>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="ghost" onClick={handleCloseModal}>
-                關閉
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      )}
+        {selectedPoint && (
+          <Modal isOpen={isOpen} onClose={handleCloseModal} isCentered>
+            <ModalOverlay />
+            <ModalContent maxWidth="550px" maxHeight="700px">
+              <ModalHeader>紅利點數詳細資料</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Text color="black"><strong>紅利編號:</strong> {selectedPoint.bonus.id}</Text>
+                <Text color="black"><strong>點數:</strong> {selectedPoint.bonus.bonus}</Text>
+                <Text color="black"><strong>訂單日期:</strong> {formatDate(selectedPoint.order.orderDate.split(' ')[0])}</Text>
+                <Text color="black"><strong>電影:</strong> {selectedPoint.movie.title}</Text>
+                <Text color="black"><strong>放映日期:</strong> {formatDate(selectedPoint.showtime.showTime.split(' ')[0])}</Text>
+                <Text color="black"><strong>支付方式:</strong> {selectedPoint.payment.payway}</Text>
+                <Text color="black"><strong>支付狀態:</strong> {selectedPoint.payment.payStatus}</Text>
+                <Text color="black"><strong>戲院:</strong> {selectedPoint.theater.theaterName}</Text>
+                <Text color="black"><strong>影廳:</strong> {selectedPoint.screen.screenName}</Text>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="ghost" onClick={handleCloseModal}>關閉</Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+        )}
+      </VStack>
     </Box>
   );
 };

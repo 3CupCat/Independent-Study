@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   Box,
   Flex,
@@ -8,9 +8,12 @@ import {
   Link,
   IconButton,
   VStack,
+  Text,
+  HStack,
 } from "@chakra-ui/react";
 import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
-import PropTypes from "prop-types"; // 引入 PropTypes
+import PropTypes from "prop-types";
+import Cookies from "js-cookie";
 import logo from "../assets/logo.svg";
 
 function NavBar() {
@@ -77,26 +80,104 @@ function Logo() {
 
 function Search() {
   const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const navigate = useNavigate();
+
   const searchBgColor = "gray.800";
   const placeholderColor = "#FFFFF0";
   const borderColor = "gray.800";
   const activeBorderColor = "#FFFFF0";
+  const resultTextColor = "#FFFFF0";
+
+  const handleSearch = async (e) => {
+    const value = e.target.value;
+    setQuery(value);
+
+    if (value.trim() === "") {
+      setResults([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/movies/search?query=${value}`
+      );
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Received non-JSON response");
+      }
+      if (response.status === 204) {
+        setResults([]);
+        return;
+      }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setResults(data);
+    } catch (error) {
+      console.error("Error fetching search results:", error);
+    }
+  };
+
+  const handleResultClick = (id) => {
+    setQuery("");
+    setResults([]);
+    navigate(`/movies/${id}`);
+  };
 
   return (
-    <Input
-      className="search-input"
-      placeholder="Search movies..."
-      value={query}
-      onChange={(e) => setQuery(e.target.value)}
-      bg={searchBgColor}
-      color="white"
-      border="1px"
-      borderColor={borderColor}
-      borderRadius="md"
-      width="15rem"
-      _placeholder={{ color: placeholderColor }}
-      _focus={{ borderColor: activeBorderColor }}
-    />
+    <Box position="relative">
+      <Input
+        className="search-input"
+        placeholder="Search movies..."
+        value={query}
+        onChange={handleSearch}
+        bg={searchBgColor}
+        color="white"
+        border="1px"
+        borderColor={borderColor}
+        borderRadius="md"
+        width="15rem"
+        _placeholder={{ color: placeholderColor }}
+        _focus={{ borderColor: activeBorderColor }}
+      />
+      {results.length > 0 && (
+        <Box
+          position="absolute"
+          bg={searchBgColor}
+          color={resultTextColor}
+          mt="2"
+          borderRadius="md"
+          boxShadow="md"
+          width="100%"
+          zIndex="1000"
+          maxHeight="15rem"
+          overflowY="auto"
+        >
+          {results.map((result) => (
+            <HStack
+              key={result.id}
+              p="2"
+              cursor="pointer"
+              _hover={{ bg: "gray.700" }}
+              onClick={() => handleResultClick(result.id)}
+              alignItems="center"
+              spacing="3"
+            >
+              <Image
+                src={result.poster}
+                alt={result.title}
+                boxSize="50px"
+                objectFit="cover"
+                borderRadius="md"
+              />
+              <Text color={resultTextColor}>{result.title}</Text>
+            </HStack>
+          ))}
+        </Box>
+      )}
+    </Box>
   );
 }
 
@@ -123,10 +204,25 @@ NavLink.propTypes = {
 };
 
 function NavLink({ to, label }) {
+  const navigate = useNavigate();
+
+  const handleClick = (e) => {
+    e.preventDefault();
+    if (label === "會員中心") {
+      const token = Cookies.get("token");
+      if (token) {
+        navigate("/member");
+      } else {
+        navigate("/login");
+      }
+    } else {
+      navigate(to);
+    }
+  };
+
   return (
     <Link
-      as={RouterLink}
-      to={to}
+      onClick={handleClick}
       fontSize="1rem"
       color="#FFFFF0"
       position="relative"

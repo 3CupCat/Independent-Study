@@ -54,6 +54,7 @@ function VideoPlayer() {
       }
 
       window.onYouTubeIframeAPIReady = () => {
+        apiLoadedRef.current = true;
         initializePlayer();
       };
     } else {
@@ -71,7 +72,7 @@ function VideoPlayer() {
 
   const initializePlayer = () => {
     const { selectedTrailerIndex } = trailerData;
-    if (movieIds.length > 0) {
+    if (movieIds.length > 0 && apiLoadedRef.current && window.YT && window.YT.Player) {
       const movieId = movieIds[selectedTrailerIndex % movieIds.length];
       const trailer = trailers[movieId] || null;
 

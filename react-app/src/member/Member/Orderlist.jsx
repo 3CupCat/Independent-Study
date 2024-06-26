@@ -1,17 +1,25 @@
-import Sidebar from "../Sidebar";
-import '../Member/Orderlist.css';
-import OrderHistory from "../OrderHistory";
+import React from 'react';
+import Sidebar from '../Sidebar';
+import OrderHistory from '../OrderHistory';
+import { Flex, Box, Center, useBreakpointValue } from '@chakra-ui/react';
 
 function OrderHistoryPage() {
+  const flexDirection = useBreakpointValue({ base: 'column', md: 'row' });
+  const sidebarWidth = useBreakpointValue({ base: '100%', md: 'auto' });
+  const contentWidth = useBreakpointValue({ base: '100%', md: 'calc(100% - 250px)' });
+  const height = useBreakpointValue({ base: '660px', md: 'auto' });
+
   return (
-    <div className="order-history-layout">
-      <div className="order-history-sidebar">
-        <Sidebar />
-      </div>
-      <div className="order-history-main">
-        <OrderHistory />
-      </div>
-    </div>
+    <Center bg="#f0f2f5" mt="60px" h={height}>
+      <Flex direction={flexDirection} maxW="800px" w="full" bg="white" boxShadow="lg" borderRadius="md" overflow="hidden" h="full">
+        <Box w={sidebarWidth} p="4">
+          <Sidebar />
+        </Box>
+        <Box flex="1" w={contentWidth} p="4">
+          <OrderHistory />
+        </Box>
+      </Flex>
+    </Center>
   );
 }
 

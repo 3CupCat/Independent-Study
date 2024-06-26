@@ -7,22 +7,56 @@ import {
   Input,
   Heading,
 } from '@chakra-ui/react';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const ChangePassword = () => {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // 處理更改密碼的邏輯
-    console.log({ oldPassword, newPassword, confirmPassword });
+
+    if (newPassword !== confirmPassword) {
+      alert("新密碼與確認新密碼不一致");
+      return;
+    }
+
+    try {
+      const token = Cookies.get('token');
+      if (!token) {
+        alert("未找到token，請重新登錄");
+        return;
+      }
+
+      const response = await axios.post(
+        'http://localhost:8080/user/change-password',
+        { oldPassword, newPassword, confirmPassword },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(response.data);
+      alert("密碼更改成功請重新登入");
+      Cookies.remove('token');
+      window.location.href = '/login';
+    } catch (error) {
+      console.error(error);
+      if (error.response && error.response.status === 401) {
+        alert("密碼錯誤");
+      } else {
+        alert("密碼更改失敗");
+      }
+    }
   };
 
   return (
     <Box
       maxWidth="600px"
-      margin="50px auto"
+      margin="0 auto"
       padding="20px"
       boxShadow="lg"
       backgroundColor="white"
