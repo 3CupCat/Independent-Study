@@ -16,10 +16,10 @@ export const BookingProvider = ({ children }) => {
     title: "",
     poster: "",
     seatStatusId: [],
-    seatPosition:[],
+    seatPosition: [],
     ticketTypeId: [],
   });
-  
+
   const updateBookingData = (newData) => {
     setBookingData((prevData) => ({ ...prevData, ...newData }));
   };

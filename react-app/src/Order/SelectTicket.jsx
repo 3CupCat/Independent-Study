@@ -89,10 +89,14 @@ const SelectTicket = () => {
         "title",
         "poster",
         "seatStatusId",
-        "seatPosition"
+        "seatPosition",
       ];
 
-      return requiredFields.some((field) => !data[field] || (Array.isArray(data[field]) && data[field].length === 0));
+      return requiredFields.some(
+        (field) =>
+          !data[field] ||
+          (Array.isArray(data[field]) && data[field].length === 0)
+      );
     };
 
     if (isBookingDataIncomplete(bookingData)) {
@@ -158,7 +162,7 @@ const SelectTicket = () => {
     setLoading(true);
     setError(null);
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get("token");
       const response = await axios.post(
         `http://localhost:8080/booking/${movieId}/order`,
         bookingData,
@@ -207,7 +211,6 @@ const SelectTicket = () => {
           ticketTypeId: [],
         });
       }, 3000);
-
     } catch (error) {
       if (error.response) {
         setError(error.response.data);
@@ -344,7 +347,11 @@ const SelectTicket = () => {
         <Modal.Header closeButton>
           <Modal.Title>購票須知</Modal.Title>
         </Modal.Header>
-        <Modal.Body className={isLargeScreen ? "custom-modal-content-lg" : "custom-modal-content-m"}>
+        <Modal.Body
+          className={
+            isLargeScreen ? "custom-modal-content-lg" : "custom-modal-content-m"
+          }
+        >
           <li>
             請確認訂購之影城、片名、級別、日期、場次、時間、座位資訊無誤。
           </li>
@@ -402,7 +409,11 @@ const SelectTicket = () => {
         <Modal.Header closeButton>
           <Modal.Title>尚未登入</Modal.Title>
         </Modal.Header>
-        <Modal.Body className={isLargeScreen ? "custom-modal-content-lg" : "custom-modal-content-m"}>
+        <Modal.Body
+          className={
+            isLargeScreen ? "custom-modal-content-lg" : "custom-modal-content-m"
+          }
+        >
           <p>
             您尚未登入TaiShow會員，請先登入以繼續進行操作。
             <br />

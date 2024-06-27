@@ -1,12 +1,15 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { Container, Row, Col, Image } from "react-bootstrap";
 import { useMediaQuery } from "react-responsive";
 import { BookingContext } from "../Context/BookingContext";
+import { useParams, useNavigate } from "react-router-dom";
 import "./order.css";
 
 const MovieInfomation = () => {
+  const { movieId } = useParams();
   const { bookingData } = useContext(BookingContext);
   const isLargeScreen = useMediaQuery({ query: "(min-width: 768px)" });
+  const navigate = useNavigate();
 
   // 調整日期呈現格式為"yyyy/mm/dd hh:mm"
   const formatDateTime = (dateTime) => {
@@ -15,6 +18,16 @@ const MovieInfomation = () => {
     const formattedTime = date.toTimeString().split(" ")[0].substring(0, 5);
     return `${formattedDate} ${formattedTime}`;
   };
+
+  useEffect(() => {
+    if (!bookingData || !bookingData.showTime) {
+      navigate(`/booking/${movieId}`);
+    }
+  }, [bookingData, movieId, navigate]);
+
+  if (!bookingData || !bookingData.showTime) {
+    return null;
+  }
 
   return (
     <Container className="my-4">
