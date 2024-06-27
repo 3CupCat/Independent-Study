@@ -16,24 +16,27 @@ export const BookingProvider = ({ children }) => {
   //   title: "",
   //   poster: "",
   //   seatStatusId: [],
+  //   seatPosition:[],
   //   ticketTypeId: [],
   // });
-
+  
+  // 測試用假資料
   const [bookingData, setBookingData] = useState({
-    theaterId: 1,
-    theaterName: "好秀影城",
-    address: "lalalalaalala",
+    theaterId: 2,
+    theaterName: "台中站前秀泰影城",
+    address: "台中市南屯區文心南路289號7樓8樓",
     showTimeId: 1,
-    showTime: "2024/06/28 18:00:00",
+    showTime: "2024-06-18 18:00:00",
     screenId: 1,
-    screenName: "OAO廳",
+    screenName: "1廳",
     screenClass: "2D",
-    title: "超大杯",
-    poster: "https://cdn2.ettoday.net/images/2447/2447767.jpg",
-    seatStatusId: [12, 13],
+    title: "猩球崛起：王國誕生",
+    poster:
+      "https://www.miranewcinemas.com/MiramarApp/Resource/8dc5e37386475be_S.jpg",
+    seatStatusId: [],
+    seatPosition:[],
     ticketTypeId: [],
   });
-
   const updateBookingData = (newData) => {
     setBookingData((prevData) => ({ ...prevData, ...newData }));
   };
@@ -44,7 +47,12 @@ export const BookingProvider = ({ children }) => {
       seatStatusId: [...prevData.seatStatusId, seatId],
     }));
   };
-
+  const addSeatPosition = (seatPosition) => {
+    setBookingData((prevData) => ({
+      ...prevData,
+      seatPosition: [...prevData.seatPosition, seatPosition],
+    }));
+  };
   const addTicketTypeId = (ticketId) => {
     setBookingData((prevData) => ({
       ...prevData,
@@ -69,8 +77,10 @@ export const BookingProvider = ({ children }) => {
         bookingData,
         updateBookingData,
         addSeatStatusId,
+        addSeatPosition,
         addTicketTypeId,
         removeTicketTypeId,
+        
       }}
     >
       {children}

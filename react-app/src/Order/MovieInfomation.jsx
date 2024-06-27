@@ -38,7 +38,7 @@ const MovieInfomation = () => {
             廳: {bookingData.screenName}
           </p>
           <p className={isLargeScreen ? "movie-text" : null}>
-            座位: {bookingData.seatStatusId.join(" & ")}
+            座位: {bookingData.seatPosition.join(" & ")}
           </p>
         </Col>
       </Row>
