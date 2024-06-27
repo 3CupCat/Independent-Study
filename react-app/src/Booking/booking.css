@@ -16,14 +16,6 @@
   padding-top: 150px;
 }
 
-.geolocation-modal-title{
-  color: black;
-}
-
-.geolocation-modal-body{
-  color: black;
-}
-
 .loading-overlay {
   position: fixed;
   top: 0;
@@ -73,4 +65,23 @@
 
 .not-geo-permission-granted{
   color: #dc3545;
+}
+
+.modal h1,
+.modal h2,
+.modal h3,
+.modal h4,
+.modal h5,
+.modal h6,
+.modal div,
+.modal p{
+  color: black;
+}
+
+.custom-modal-content-lg{
+  max-height: 420px;
+}
+
+.custom-modal-content-m{
+  max-height: 300px;
 }

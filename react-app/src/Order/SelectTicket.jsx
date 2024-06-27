@@ -14,7 +14,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { BookingContext } from "../Context/BookingContext";
 import "./order.css";
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
 
 const SelectTicket = () => {
   const { movieId } = useParams();
@@ -115,7 +115,7 @@ const SelectTicket = () => {
 
   const isLogin = async () => {
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get("token");
       return !!token;
     } catch (error) {
       console.error(error);
@@ -288,18 +288,50 @@ const SelectTicket = () => {
         onHide={() => setShowModal(false)}
         backdrop="static"
         centered={!isLargeScreen}
+        scrollable="true"
       >
         <Modal.Header closeButton>
-          <Modal.Title className="send-order-modal-title">
-            購買票券須知事項
-          </Modal.Title>
+          <Modal.Title>購票須知</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="send-order-modal-body">
-          這裡顯示購買票券須知事項的內容。Lorem ipsum dolor sit amet consectetur
-          adipisicing elit. Praesentium earum molestias recusandae, iusto
-          dolorum debitis harum laudantium non itaque similique eum
-          exercitationem dignissimos aperiam nam. Aliquid dolores itaque
-          asperiores beatae.
+        <Modal.Body className={isLargeScreen ? "custom-modal-content-lg" : "custom-modal-content-m"}>
+          <li>
+            請確認訂購之影城、片名、級別、日期、場次、時間、座位資訊無誤。
+          </li>
+          <li>
+            電影票於影城現場也同步出售，只需於訂購的電影開場前完成取票即可（為免假日人潮建議提早30分鐘）。
+          </li>
+          <li>
+            為避免影響其他觀眾之權益，電影開演30分鐘後，即無法入場。該電影票即為隔場票券並作廢，恕無法受理退票或更換。
+          </li>
+          <li>
+            交易成功後，如逾期未取票者，影城現場並不會自動取消座位或退款，仍需支付該筆費用。
+          </li>
+          <li>
+            電影分級依文化局規定電影分級制度分為五級，請於訂票前，了解分級規範。如因不符相關規定而無法入場，現場將協助引導退換票事宜。
+          </li>
+          <li>
+            為維護顧客權益，惡意佔位或影響他人正常訂位使用者，泰秀保有調整或取消訂位之權利。
+          </li>
+          <li>
+            網路、手機預購票券，請持購票代碼及身份證明證件（或原購票信用卡）至專屬櫃台票口兌換實體票券入場。
+          </li>
+          <li>
+            請妥善保管電影票券，如遺失、破損、燒毀及無法辨識等情形，恕不重新開票。任何憑證皆無法取代票券本身，恕無法持任何憑證要求入場或補開票券。
+          </li>
+          <li>已取票者，該筆訂單恕無法辦理退票。</li>
+          <li>
+            未取票如欲退票，請於所訂購場次之開演時間前30分鐘聯絡客服取消訂單。避免與系統時間有落差，請盡量提早辦理。請務必確認訂單狀態為【已退款】，該筆訂單才算退票成功。
+          </li>
+          <li>
+            已售出之票券無法更改場次、時間，如欲更改場次或時間必須先行退票再重新訂票。
+          </li>
+          <li>
+            請務必確認訂票資訊是否正確，如因個人事項超過放映時間，恕不辦理退票。
+          </li>
+          <li>
+            使用本系統購票成功時，每一張票券須收取預定費（10%），如欲退票者，預定費恕不退還。
+          </li>
+          <li>如欲退票時，將整筆訂單進行退票，恕不提供單一票券退款。</li>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
@@ -317,19 +349,21 @@ const SelectTicket = () => {
         centered={!isLargeScreen}
       >
         <Modal.Header closeButton>
-          <Modal.Title className="send-order-modal-title">
-            您還未登入
-          </Modal.Title>
+          <Modal.Title>尚未登入</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="send-order-modal-body">
-          快點去登入
+        <Modal.Body className={isLargeScreen ? "custom-modal-content-lg" : "custom-modal-content-m"}>
+          <p>
+            您尚未登入TaiShow會員，請先登入以繼續進行操作。
+            <br />
+            點擊登入將為您導引至登入頁面。
+          </p>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowLoginModal(false)}>
             取消
           </Button>
           <Button variant="primary" onClick={handleRedirect}>
-          前往登入頁面
+            登入
           </Button>
         </Modal.Footer>
       </Modal>

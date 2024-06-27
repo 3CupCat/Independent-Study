@@ -117,14 +117,6 @@ tr:nth-of-type(even) td {
   z-index: 9999;
 }
 
-.send-order-modal-title{
-  color: black;
-}
-
-.send-order-modal-body{
-  color: black;
-}
-
-.payment-container {
+.custom-padding-top {
   padding-top: 55px;
 }

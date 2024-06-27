@@ -6,7 +6,7 @@ import "./order.css";
 const OrderLayout = () => {
   return (
     <>
-      <div className="payment-container">
+      <div className="custom-padding-top">
         <MovieInfomation />
         <SelectTicket />
       </div>

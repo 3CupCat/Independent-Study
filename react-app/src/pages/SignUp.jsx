@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Modal, Button, Spinner, Form, Container, Row, Col } from 'react-bootstrap';
-import "./Loginpage.css";
+import "../pages/Loginpage.css";
+import { useMediaQuery } from "react-responsive";
 
 const REGISTER_URL = "http://localhost:8080/user/register";
 const SEND_VERIFICATION_URL = "http://localhost:8080/user/sendVerification";
 const CHECK_ACCOUNT_EMAIL_URL = "http://localhost:8080/user/checkAccountEmail";
 
 const Info = () => {
+  const isLargeScreen = useMediaQuery({ query: "(min-width: 768px)" });
   const [account, setAccount] = useState("");
   const [passwd, setPasswd] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -197,7 +199,7 @@ const Info = () => {
   };
 
   return (
-    <section className="login-container">
+    <section className="login-container sign-up-padding-top">
       <form method="post" className="signin-box">
         <h2>註冊會員</h2>
         <div className="input-box">
@@ -278,9 +280,9 @@ const Info = () => {
 
         <Modal show={showModal} onHide={handleCloseModal}>
           <Modal.Header closeButton>
-            <Modal.Title className="sign-up-modal-title">驗證碼</Modal.Title>
+            <Modal.Title>驗證碼</Modal.Title>
           </Modal.Header>
-          <Modal.Body className="sign-up-modal-body">
+          <Modal.Body className={isLargeScreen ? "custom-modal-content-lg" : "custom-modal-content-m"}>
             <Form.Group controlId="verificationCode">
               <Form.Label>請輸入驗證碼</Form.Label>
               <Form.Control
@@ -303,9 +305,9 @@ const Info = () => {
 
         <Modal show={showSuccessModal} onHide={handleCloseSuccessModal}>
           <Modal.Header closeButton>
-            <Modal.Title className="sign-up-modal-title">註冊成功</Modal.Title>
+            <Modal.Title>註冊成功</Modal.Title>
           </Modal.Header>
-          <Modal.Body className="sign-up-modal-body">
+          <Modal.Body className={isLargeScreen ? "custom-modal-content-lg" : "custom-modal-content-m"}>
             註冊成功！即將跳轉到登入頁面...
           </Modal.Body>
         </Modal>

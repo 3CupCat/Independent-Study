@@ -397,11 +397,11 @@ const Booking = () => {
         centered={!isLargeScreen}
       >
         <Modal.Header closeButton>
-          <Modal.Title className="geolocation-modal-title">
+          <Modal.Title>
             允許地理定位
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body className="geolocation-modal-body">
+        <Modal.Body className={isLargeScreen ? "custom-modal-content-lg" : "custom-modal-content-m"}>
           我們需要您的許可來獲取您的地理位置以提供更好的服務。
         </Modal.Body>
         <Modal.Footer>
