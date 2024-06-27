@@ -102,7 +102,7 @@ const SelectTicket = () => {
     if (isBookingDataIncomplete(bookingData)) {
       navigate(`/booking/${movieId}`);
     }
-  }, [bookingData, navigate]);
+  }, [bookingData, movieId, navigate]);
 
   const subTotalPrice = ticketTypes.reduce((total, ticket) => {
     return total + ticketCounts[ticket.ticketType] * ticket.unitPrice;
