@@ -75,6 +75,31 @@ const SelectTicket = () => {
     }
   }, [ticketToRemove, removeTicketTypeId]);
 
+  useEffect(() => {
+    const isBookingDataIncomplete = (data) => {
+      const requiredFields = [
+        "theaterId",
+        "theaterName",
+        "address",
+        "showTimeId",
+        "showTime",
+        "screenId",
+        "screenName",
+        "screenClass",
+        "title",
+        "poster",
+        "seatStatusId",
+        "seatPosition"
+      ];
+
+      return requiredFields.some((field) => !data[field] || (Array.isArray(data[field]) && data[field].length === 0));
+    };
+
+    if (isBookingDataIncomplete(bookingData)) {
+      navigate(`/booking/${movieId}`);
+    }
+  }, [bookingData, navigate]);
+
   const subTotalPrice = ticketTypes.reduce((total, ticket) => {
     return total + ticketCounts[ticket.ticketType] * ticket.unitPrice;
   }, 0);
@@ -133,9 +158,15 @@ const SelectTicket = () => {
     setLoading(true);
     setError(null);
     try {
+      const token = Cookies.get('token');
       const response = await axios.post(
         `http://localhost:8080/booking/${movieId}/order`,
-        bookingData
+        bookingData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (response.data) {
@@ -157,6 +188,26 @@ const SelectTicket = () => {
       }
 
       console.log(response.data); // 在這裡處理後端的回應
+
+      // 初始化 bookingData
+      setTimeout(() => {
+        updateBookingData({
+          theaterId: null,
+          theaterName: "",
+          address: "",
+          showTimeId: null,
+          showTime: "",
+          screenId: null,
+          screenName: "",
+          screenClass: "",
+          title: "",
+          poster: "",
+          seatStatusId: [],
+          seatPosition: [],
+          ticketTypeId: [],
+        });
+      }, 3000);
+
     } catch (error) {
       if (error.response) {
         setError(error.response.data);
