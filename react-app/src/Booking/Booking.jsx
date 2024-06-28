@@ -385,6 +385,7 @@ const Booking = () => {
           <Button
             variant="outline-light"
             className="w-100"
+            size="lg"
             onClick={handleNextStep}
           >
             下一步

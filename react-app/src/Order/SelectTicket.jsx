@@ -330,6 +330,7 @@ const SelectTicket = () => {
           <Button
             variant="outline-light"
             className="w-100"
+            size="lg"
             onClick={handleOrderConfirmation}
             disabled={loading}
           >
