@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import Cookies from 'js-cookie';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import Cookies from "js-cookie";
 import {
   Center,
   Box,
@@ -22,48 +22,59 @@ import {
   HStack,
   Flex,
   Icon,
-} from '@chakra-ui/react';
-import { CheckCircleIcon } from '@chakra-ui/icons';
+} from "@chakra-ui/react";
+import { CheckCircleIcon } from "@chakra-ui/icons";
 
 const UserProfileEdit = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
-  const [error, setError] = useState('');
-  const [emailInfo, setEmailInfo] = useState('');
-  const [phoneInfo, setPhoneInfo] = useState('');
-  const [emailVerificationCode, setEmailVerificationCode] = useState('');
-  const [phoneVerificationCode, setPhoneVerificationCode] = useState('');
+  const [error, setError] = useState("");
+  const [emailInfo, setEmailInfo] = useState("");
+  const [phoneInfo, setPhoneInfo] = useState("");
+  const [emailVerificationCode, setEmailVerificationCode] = useState("");
+  const [phoneVerificationCode, setPhoneVerificationCode] = useState("");
   const [emailSuccess, setEmailSuccess] = useState(false);
   const [phoneSuccess, setPhoneSuccess] = useState(false);
   const [isEmailEditable, setIsEmailEditable] = useState(false);
   const [isPhoneEditable, setIsPhoneEditable] = useState(false);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { isOpen: isPhoneOpen, onOpen: onPhoneOpen, onClose: onPhoneClose } = useDisclosure();
-  const { isOpen: isSuccessOpen, onOpen: onSuccessOpen, onClose: onSuccessClose } = useDisclosure();
+  const {
+    isOpen: isPhoneOpen,
+    onOpen: onPhoneOpen,
+    onClose: onPhoneClose,
+  } = useDisclosure();
+  const {
+    isOpen: isSuccessOpen,
+    onOpen: onSuccessOpen,
+    onClose: onSuccessClose,
+  } = useDisclosure();
 
   useEffect(() => {
     const fetchUserInfo = async () => {
-      const token = Cookies.get('token');
+      const token = Cookies.get("token");
       if (!token) {
-        setError('未找到 JWT');
+        setError("未找到 JWT");
         return;
       }
 
       try {
-        const response = await axios.get('http://localhost:8080/user/user-info', {
-          headers: {
-            Authorization: `Bearer ${token}`
+        const response = await axios.get(
+          "http://localhost:8080/user/user-info",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
-        });
+        );
         const data = response.data;
         if (data.birthday) {
-          const [year, month, day] = data.birthday.split('-');
+          const [year, month, day] = data.birthday.split("-");
           data.birthDate = { year, month: parseInt(month), day: parseInt(day) };
         }
         setUserInfo(data);
       } catch (error) {
-        setError('獲取用戶資料失敗');
+        setError("獲取用戶資料失敗");
       }
     };
 
@@ -72,27 +83,27 @@ const UserProfileEdit = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setUserInfo(prevState => ({
+    setUserInfo((prevState) => ({
       ...prevState,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleGenderChange = (e) => {
-    setUserInfo(prevState => ({
+    setUserInfo((prevState) => ({
       ...prevState,
-      gender: e.target.value
+      gender: e.target.value,
     }));
   };
 
   const handleBirthDateChange = (e) => {
     const { name, value } = e.target;
-    setUserInfo(prevState => ({
+    setUserInfo((prevState) => ({
       ...prevState,
       birthDate: {
         ...prevState.birthDate,
-        [name]: value
-      }
+        [name]: value,
+      },
     }));
   };
 
@@ -102,9 +113,9 @@ const UserProfileEdit = () => {
       setAvatarFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setUserInfo(prevState => ({
+        setUserInfo((prevState) => ({
           ...prevState,
-          avatar: reader.result
+          avatar: reader.result,
         }));
       };
       reader.readAsDataURL(file);
@@ -113,31 +124,41 @@ const UserProfileEdit = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
-    if (!userInfo.birthDate.year || !userInfo.birthDate.month || !userInfo.birthDate.day) {
-      setError('請完整填寫生日信息');
+    if (
+      !userInfo.birthDate.year ||
+      !userInfo.birthDate.month ||
+      !userInfo.birthDate.day
+    ) {
+      setError("請完整填寫生日信息");
       return;
     }
 
-    const birthDate = `${userInfo.birthDate.year}-${String(userInfo.birthDate.month).padStart(2, '0')}-${String(userInfo.birthDate.day).padStart(2, '0')}`;
+    const birthDate = `${userInfo.birthDate.year}-${String(
+      userInfo.birthDate.month
+    ).padStart(2, "0")}-${String(userInfo.birthDate.day).padStart(2, "0")}`;
     let avatarUrl = userInfo.avatar;
 
     if (avatarFile) {
       const formData = new FormData();
-      formData.append('avatar', avatarFile);
+      formData.append("avatar", avatarFile);
 
       try {
-        const response = await axios.put('http://localhost:8080/upload-avatar', formData, {
-          headers: {
-            Authorization: `Bearer ${Cookies.get('token')}`,
-            'Content-Type': 'multipart/form-data'
+        const response = await axios.put(
+          "http://localhost:8080/upload-avatar",
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("token")}`,
+              "Content-Type": "multipart/form-data",
+            },
           }
-        });
+        );
 
         avatarUrl = response.data.filePath;
       } catch (err) {
-        setError('圖片上傳失敗，請重試');
+        setError("圖片上傳失敗，請重試");
         return;
       }
     }
@@ -145,23 +166,27 @@ const UserProfileEdit = () => {
     const updatedUserInfo = {
       ...userInfo,
       avatar: avatarUrl,
-      birthday: birthDate
+      birthday: birthDate,
     };
 
     console.log("Updated User Info: ", updatedUserInfo);
 
     try {
-      const res = await axios.put('http://localhost:8080/user/upload-info', updatedUserInfo, {
-        headers: {
-          Authorization: `Bearer ${Cookies.get('token')}`,
-          'Content-Type': 'application/json'
+      const res = await axios.put(
+        "http://localhost:8080/user/upload-info",
+        updatedUserInfo,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("token")}`,
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
 
       console.log(res.data);
       onSuccessOpen(); // 打開成功視窗
     } catch (err) {
-      setError('儲存失敗，請重試');
+      setError("儲存失敗，請重試");
     }
   };
 
@@ -194,106 +219,122 @@ const UserProfileEdit = () => {
   };
 
   const handleSendEmailCode = async () => {
-    const token = Cookies.get('token');
+    const token = Cookies.get("token");
     try {
-      const response = await axios.post('http://localhost:8080/email/send-code', null, {
-        params: {
-          email: emailInfo
-        },
-        headers: {
-          Authorization: `Bearer ${token}`
+      const response = await axios.post(
+        "http://localhost:8080/email/send-code",
+        null,
+        {
+          params: {
+            email: emailInfo,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
-      alert('Email 驗證碼已發送');
+      );
+      alert("Email 驗證碼已發送");
     } catch (error) {
       if (error.response && error.response.status === 409) {
-        alert('該電子信箱已被使用，請嘗試使用其他電子信箱');
+        alert("該電子信箱已被使用，請嘗試使用其他電子信箱");
       } else {
-        console.error('發送驗證碼失敗:', error);
-        alert('發送驗證碼失敗');
+        console.error("發送驗證碼失敗:", error);
+        alert("發送驗證碼失敗");
       }
     }
   };
 
   const handleSendPhoneCode = async () => {
-    const token = Cookies.get('token');
+    const token = Cookies.get("token");
     try {
-      const response = await axios.post('http://localhost:8080/phone/send-code', null, {
-        params: {
-          phone: phoneInfo
-        },
-        headers: {
-          Authorization: `Bearer ${token}`
+      const response = await axios.post(
+        "http://localhost:8080/phone/send-code",
+        null,
+        {
+          params: {
+            phone: phoneInfo,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
-      alert('手機號碼驗證碼已發送');
+      );
+      alert("手機號碼驗證碼已發送");
     } catch (error) {
       if (error.response && error.response.status === 409) {
-        alert('該手機號碼已被使用，請嘗試使用其他手機號碼');
+        alert("該手機號碼已被使用，請嘗試使用其他手機號碼");
       } else {
-        console.error('發送驗證碼失敗:', error);
-        alert('發送驗證碼失敗');
+        console.error("發送驗證碼失敗:", error);
+        alert("發送驗證碼失敗");
       }
     }
   };
 
   const handleEmailVerify = async () => {
-    const token = Cookies.get('token');
+    const token = Cookies.get("token");
     try {
-      const response = await axios.post('http://localhost:8080/email/verify-code', null, {
-        params: {
-          email: emailInfo,
-          code: emailVerificationCode
-        },
-        headers: {
-          Authorization: `Bearer ${token}`
+      const response = await axios.post(
+        "http://localhost:8080/email/verify-code",
+        null,
+        {
+          params: {
+            email: emailInfo,
+            code: emailVerificationCode,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
       if (response.data) {
         setEmailSuccess(true);
-        alert('驗證成功');
-        setUserInfo(prevState => ({
+        alert("驗證成功");
+        setUserInfo((prevState) => ({
           ...prevState,
-          email: emailInfo
+          email: emailInfo,
         }));
         setIsEmailEditable(false);
         onClose();
       } else {
-        alert('驗證碼無效');
+        alert("驗證碼無效");
       }
     } catch (error) {
-      console.error('驗證失敗:', error);
-      alert('驗證失敗');
+      console.error("驗證失敗:", error);
+      alert("驗證失敗");
     }
   };
 
   const handlePhoneVerify = async () => {
-    const token = Cookies.get('token');
+    const token = Cookies.get("token");
     try {
-      const response = await axios.post('http://localhost:8080/phone/verify-code', null, {
-        params: {
-          phone: phoneInfo,
-          code: phoneVerificationCode
-        },
-        headers: {
-          Authorization: `Bearer ${token}`
+      const response = await axios.post(
+        "http://localhost:8080/phone/verify-code",
+        null,
+        {
+          params: {
+            phone: phoneInfo,
+            code: phoneVerificationCode,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
       if (response.data) {
         setPhoneSuccess(true);
-        alert('驗證成功');
-        setUserInfo(prevState => ({
+        alert("驗證成功");
+        setUserInfo((prevState) => ({
           ...prevState,
-          phone: phoneInfo
+          phone: phoneInfo,
         }));
         setIsPhoneEditable(false);
         onPhoneClose();
       } else {
-        alert('驗證碼無效');
+        alert("驗證碼無效");
       }
     } catch (error) {
-      console.error('驗證失敗:', error);
-      alert('驗證失敗');
+      console.error("驗證失敗:", error);
+      alert("驗證失敗");
     }
   };
 
@@ -302,16 +343,29 @@ const UserProfileEdit = () => {
   }
 
   return (
-    <Flex direction="column" h="full" justifyContent="center" maxW="800px" mx="auto" mt="4" p="6" boxShadow="lg" bg="white" borderRadius="md">
+    <Flex
+      direction="column"
+      h="full"
+      justifyContent="center"
+      maxW="800px"
+      mx="auto"
+      p="6"
+      boxShadow="lg"
+      bg="white"
+      borderRadius="md"
+      color="black"
+    >
       {error && <Text color="red.500">{error}</Text>}
       <form onSubmit={handleSubmit}>
         <FormControl mb="4">
-          <FormLabel htmlFor="username" color="black">用戶名</FormLabel>
+          <FormLabel htmlFor="username" color="black" fontWeight="bold">
+            用戶名
+          </FormLabel>
           <Input
             type="text"
             id="username"
             name="username"
-            value={userInfo.userName || ''}
+            value={userInfo.userName || ""}
             onChange={handleInputChange}
             readOnly
             color="black"
@@ -319,60 +373,68 @@ const UserProfileEdit = () => {
         </FormControl>
 
         <FormControl mb="4">
-          <FormLabel htmlFor="email" color="black">Email</FormLabel>
+          <FormLabel htmlFor="email" color="black">
+            Email
+          </FormLabel>
           <Flex>
             <Input
               type="email"
               id="email"
               name="email"
-              value={userInfo.email || ''}
+              value={userInfo.email || ""}
               readOnly={!isEmailEditable}
               flex="1"
               color="black"
             />
             <Button ml="2" colorScheme="teal" onClick={handleEmailUpdate}>
-              {isEmailEditable ? '正在更新' : '更新 Email'}
+              {isEmailEditable ? "正在更新" : "更新 Email"}
             </Button>
           </Flex>
         </FormControl>
 
         <FormControl mb="4">
-          <FormLabel htmlFor="phone" color="black">手機號碼</FormLabel>
+          <FormLabel htmlFor="phone" color="black" fontWeight="bold">
+            手機號碼
+          </FormLabel>
           <Flex>
             <Input
               type="text"
               id="phone"
               name="phone"
-              value={userInfo.phone || ''}
+              value={userInfo.phone || ""}
               onChange={handleInputChange}
               readOnly={!isPhoneEditable}
               flex="1"
               color="black"
             />
             <Button ml="2" colorScheme="teal" onClick={handlePhoneUpdate}>
-              {isPhoneEditable ? '正在更新' : '更新手機號碼'}
+              {isPhoneEditable ? "正在更新" : "更新手機號碼"}
             </Button>
           </Flex>
         </FormControl>
 
         <FormControl mb="4">
-          <FormLabel htmlFor="address" color="black">地址</FormLabel>
+          <FormLabel htmlFor="address" color="black" fontWeight="bold">
+            地址
+          </FormLabel>
           <Input
             type="text"
             id="address"
             name="address"
-            value={userInfo.address || ''}
+            value={userInfo.address || ""}
             onChange={handleInputChange}
             color="black"
           />
         </FormControl>
 
         <FormControl mb="4">
-          <FormLabel htmlFor="gender" color="black">性別</FormLabel>
+          <FormLabel htmlFor="gender" color="black" fontWeight="bold">
+            性別
+          </FormLabel>
           <Select
             id="gender"
             name="gender"
-            value={userInfo.gender || ''}
+            value={userInfo.gender || ""}
             onChange={handleGenderChange}
             color="black"
           >
@@ -384,26 +446,67 @@ const UserProfileEdit = () => {
         </FormControl>
 
         <FormControl mb="4">
-          <FormLabel color="black">生日</FormLabel>
+          <FormLabel color="black" fontWeight="bold">
+            生日
+          </FormLabel>
           <Flex justifyContent="space-between">
-            <Select name="year" value={userInfo.birthDate?.year || ''} onChange={handleBirthDateChange} width="30%" color="black">
-              {Array.from({ length: 100 }, (_, i) => 1920 + i).map(year => (
-                <option key={year} value={year}>{year}</option>
+            <Select
+              name="year"
+              value={userInfo.birthDate?.year || ""}
+              onChange={handleBirthDateChange}
+              width="30%"
+              color="black"
+            >
+              {Array.from({ length: 100 }, (_, i) => 1920 + i).map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
               ))}
             </Select>
-            <Select name="month" value={userInfo.birthDate?.month || ''} onChange={handleBirthDateChange} width="30%" color="black">
-              {['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'].map((month, index) => (
-                <option key={index + 1} value={index + 1}>{month}</option>
+            <Select
+              name="month"
+              value={userInfo.birthDate?.month || ""}
+              onChange={handleBirthDateChange}
+              width="30%"
+              color="black"
+            >
+              {[
+                "1月",
+                "2月",
+                "3月",
+                "4月",
+                "5月",
+                "6月",
+                "7月",
+                "8月",
+                "9月",
+                "10月",
+                "11月",
+                "12月",
+              ].map((month, index) => (
+                <option key={index + 1} value={index + 1}>
+                  {month}
+                </option>
               ))}
             </Select>
-            <Select name="day" value={userInfo.birthDate?.day || ''} onChange={handleBirthDateChange} width="30%" color="black">
-              {[...Array(31).keys()].map(i => (
-                <option key={i + 1} value={i + 1}>{i + 1}</option>
+            <Select
+              name="day"
+              value={userInfo.birthDate?.day || ""}
+              onChange={handleBirthDateChange}
+              width="30%"
+              color="black"
+            >
+              {[...Array(31).keys()].map((i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
               ))}
             </Select>
           </Flex>
         </FormControl>
-        <Button type="submit" colorScheme="blue" width="full">儲存</Button>
+        <Button type="submit" colorScheme="blue" width="full">
+          儲存
+        </Button>
       </form>
 
       {/* 儲存成功 Modal */}
@@ -414,7 +517,9 @@ const UserProfileEdit = () => {
           <ModalBody>
             <VStack>
               <Center>
-                <Text color="black" mt={8}>您的資料已成功儲存。</Text>
+                <Text color="black" mt={8}>
+                  您的資料已成功儲存。
+                </Text>
               </Center>
               <Icon as={CheckCircleIcon} color="green.500" boxSize={6} />
             </VStack>
@@ -441,7 +546,9 @@ const UserProfileEdit = () => {
             ) : (
               <>
                 <FormControl mb="4">
-                  <FormLabel htmlFor="new-email" color="black">新 Email</FormLabel>
+                  <FormLabel htmlFor="new-email" color="black">
+                    新 Email
+                  </FormLabel>
                   <Input
                     type="text"
                     id="new-email"
@@ -451,9 +558,13 @@ const UserProfileEdit = () => {
                     color="black"
                   />
                 </FormControl>
-                <Button colorScheme="teal" onClick={handleSendEmailCode} mb="4">寄送驗證碼</Button>
+                <Button colorScheme="teal" onClick={handleSendEmailCode} mb="4">
+                  寄送驗證碼
+                </Button>
                 <FormControl mb="4">
-                  <FormLabel htmlFor="email-verification-code" color="black">Email 驗證碼</FormLabel>
+                  <FormLabel htmlFor="email-verification-code" color="black">
+                    Email 驗證碼
+                  </FormLabel>
                   <Input
                     type="text"
                     id="email-verification-code"
@@ -463,7 +574,9 @@ const UserProfileEdit = () => {
                     color="black"
                   />
                 </FormControl>
-                <Button colorScheme="blue" onClick={handleEmailVerify}>驗證 Email</Button>
+                <Button colorScheme="blue" onClick={handleEmailVerify}>
+                  驗證 Email
+                </Button>
               </>
             )}
           </ModalBody>
@@ -491,7 +604,9 @@ const UserProfileEdit = () => {
             ) : (
               <>
                 <FormControl mb="4">
-                  <FormLabel htmlFor="new-phone" color="black">新手機號碼</FormLabel>
+                  <FormLabel htmlFor="new-phone" color="black">
+                    新手機號碼
+                  </FormLabel>
                   <Input
                     type="text"
                     id="new-phone"
@@ -501,9 +616,13 @@ const UserProfileEdit = () => {
                     color="black"
                   />
                 </FormControl>
-                <Button colorScheme="teal" onClick={handleSendPhoneCode} mb="4">寄送驗證碼</Button>
+                <Button colorScheme="teal" onClick={handleSendPhoneCode} mb="4">
+                  寄送驗證碼
+                </Button>
                 <FormControl mb="4">
-                  <FormLabel htmlFor="phone-verification-code" color="black">手機號碼驗證碼</FormLabel>
+                  <FormLabel htmlFor="phone-verification-code" color="black">
+                    手機號碼驗證碼
+                  </FormLabel>
                   <Input
                     type="text"
                     id="phone-verification-code"
@@ -513,7 +632,9 @@ const UserProfileEdit = () => {
                     color="black"
                   />
                 </FormControl>
-                <Button colorScheme="blue" onClick={handlePhoneVerify}>驗證手機號碼</Button>
+                <Button colorScheme="blue" onClick={handlePhoneVerify}>
+                  驗證手機號碼
+                </Button>
               </>
             )}
           </ModalBody>

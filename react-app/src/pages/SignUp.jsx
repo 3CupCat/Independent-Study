@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Modal, Button, Spinner, Form, Container, Row, Col } from 'react-bootstrap';
+import {
+  Modal,
+  Button,
+  Spinner,
+  Form,
+  Container,
+  Row,
+  Col,
+} from "react-bootstrap";
 import "../pages/Loginpage.css";
 import { useMediaQuery } from "react-responsive";
 
@@ -79,8 +87,16 @@ const Info = () => {
   };
 
   const validatePassword = (passwd) => {
-    if (passwd.length < 8 || !/[A-Z]/.test(passwd) || !/[a-z]/.test(passwd) || !/[0-9]/.test(passwd) || !/[!@#$%^&*]/.test(passwd)) {
-      setPasswordError("密碼必須包含至少8個字符，包括大小寫字母、數字和特殊字符");
+    if (
+      passwd.length < 8 ||
+      !/[A-Z]/.test(passwd) ||
+      !/[a-z]/.test(passwd) ||
+      !/[0-9]/.test(passwd) ||
+      !/[!@#$%^&*]/.test(passwd)
+    ) {
+      setPasswordError(
+        "密碼必須包含至少8個字符，包括大小寫字母、數字和特殊字符"
+      );
     } else {
       setPasswordError("");
     }
@@ -109,17 +125,23 @@ const Info = () => {
 
     const requestData = { email, account };
 
-    axios.post(CHECK_ACCOUNT_EMAIL_URL, requestData, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+    axios
+      .post(CHECK_ACCOUNT_EMAIL_URL, requestData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
       .then(function (response) {
-        axios.post(SEND_VERIFICATION_URL, { email }, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
+        axios
+          .post(
+            SEND_VERIFICATION_URL,
+            { email },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          )
           .then(function (response) {
             setIsVerificationSent(true);
             setShowModal(true);
@@ -135,7 +157,7 @@ const Info = () => {
       })
       .catch(function (error) {
         if (error.response && error.response.data) {
-          if (typeof error.response.data === 'string') {
+          if (typeof error.response.data === "string") {
             setErrorMessage(error.response.data);
           } else if (error.response.data.error) {
             setErrorMessage(error.response.data.error);
@@ -161,11 +183,12 @@ const Info = () => {
 
     setIsLoading(true);
 
-    axios.post(REGISTER_URL, requestData, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+    axios
+      .post(REGISTER_URL, requestData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
       .then(function (response) {
         setIsLoading(false);
         setShowSuccessModal(true);
@@ -178,7 +201,7 @@ const Info = () => {
       .catch(function (error) {
         setIsLoading(false);
         if (error.response && error.response.data) {
-          if (typeof error.response.data === 'string') {
+          if (typeof error.response.data === "string") {
             setErrorMessage(error.response.data);
           } else if (error.response.data.error) {
             setErrorMessage(error.response.data.error);
@@ -282,7 +305,13 @@ const Info = () => {
           <Modal.Header closeButton>
             <Modal.Title>驗證碼</Modal.Title>
           </Modal.Header>
-          <Modal.Body className={isLargeScreen ? "custom-modal-content-lg" : "custom-modal-content-m"}>
+          <Modal.Body
+            className={
+              isLargeScreen
+                ? "custom-modal-content-lg"
+                : "custom-modal-content-m"
+            }
+          >
             <Form.Group controlId="verificationCode">
               <Form.Label>請輸入驗證碼</Form.Label>
               <Form.Control
@@ -307,7 +336,13 @@ const Info = () => {
           <Modal.Header closeButton>
             <Modal.Title>註冊成功</Modal.Title>
           </Modal.Header>
-          <Modal.Body className={isLargeScreen ? "custom-modal-content-lg" : "custom-modal-content-m"}>
+          <Modal.Body
+            className={
+              isLargeScreen
+                ? "custom-modal-content-lg"
+                : "custom-modal-content-m"
+            }
+          >
             註冊成功！即將跳轉到登入頁面...
           </Modal.Body>
         </Modal>

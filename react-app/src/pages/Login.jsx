@@ -1,19 +1,21 @@
 import React, { useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '@chakra-ui/react';
+import { useNavigate, useLocation } from "react-router-dom";
+import { Button, Spinner, Box, Checkbox, Link, Text } from "@chakra-ui/react";
+import { auth, provider } from "../config/firebase";
+import { signInWithPopup } from "firebase/auth";
 import "../pages/Loginpage.css";
-import { Spinner } from '@chakra-ui/react';
 
 const LOGIN_URL = "http://localhost:8080/user/login";
 
 const Login = () => {
   const [account, setAccount] = useState("");
   const [passwd, setPasswd] = useState("");
-  const [error, setError] = useState('');
-  const [loginMessage, setLoginMessage] = useState('');
+  const [error, setError] = useState("");
+  const [loginMessage, setLoginMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -28,68 +30,106 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!account || !passwd) {
-      setError('請輸入帳號和密碼');
+      setError("請輸入帳號和密碼");
       return;
     }
-    setError('');
-    setLoginMessage('');
+    setError("");
+    setLoginMessage("");
     setLoading(true);
     try {
-      const response = await axios.post(LOGIN_URL, {
-        account: account,
-        passwd: passwd
-      }, {
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await axios.post(
+        LOGIN_URL,
+        {
+          account: account,
+          passwd: passwd,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      });
-      Cookies.set('token', response.data, { expires: 1 });
-      setLoginMessage('登錄成功');
+      );
+      Cookies.set("token", response.data, { expires: 1 });
+      // setLoginMessage('登錄成功');
       setTimeout(() => {
         setLoading(false); // 停止加載
-        const redirectTo = location.state?.from?.pathname || '/';
+        const redirectTo = location.state?.from?.pathname || "/";
         navigate(redirectTo); // 登錄成功後跳轉到上個頁面
       }, 1000);
     } catch (error) {
       setLoading(false); // 停止加載
       if (error.response) {
-        const errorMsg = typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data);
+        const errorMsg =
+          typeof error.response.data === "string"
+            ? error.response.data
+            : JSON.stringify(error.response.data);
         setError(errorMsg);
       } else if (error.request) {
-        setError('無法連接到服務器');
+        setError("無法連接到服務器");
       } else {
-        setError('請求發生錯誤');
+        setError("請求發生錯誤");
       }
     }
   };
 
   const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
     try {
-      setLoading(true);
-      const result = await signInWithPopup(auth, googleProvider);
-      const token = await result.user.getIdToken();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const displayName = user.displayName;
+      const email = user.email;
+      const photoURL = user.photoURL;
 
-      // 打印 token 到控制台
-      console.log("Google ID Token:", token);
-
-      const response = await axios.post('http://localhost:8080/user/google-login', { tokenId: token }, {
-        headers: {
-          'Content-Type': 'application/json'
+      // 轉換圖片 URL 為 base64
+      const toDataURL = async (url) => {
+        try {
+          const response = await fetch(
+            `https://cors-anywhere.herokuapp.com/${url}`
+          );
+          const blob = await response.blob();
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+          });
+        } catch (error) {
+          console.error("Failed to fetch image:", error);
+          throw error;
         }
-      });
+      };
 
-      Cookies.set('token', response.data.token, { expires: 1 });
+      const photoBase64 = await toDataURL(photoURL);
 
-      setLoginMessage('Google 登錄成功');
+      const requestData = {
+        userName: displayName,
+        email: email,
+        photo: photoBase64,
+      };
+
+      console.log("data:", requestData);
+      const response = await axios.post(
+        "http://localhost:8080/user/google-login",
+        requestData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      Cookies.set("token", response.data, { expires: 1 });
+      // setLoginMessage('登錄成功');
       setTimeout(() => {
-        setLoading(false);
-        const redirectTo = location.state?.from?.pathname || '/';
-        navigate(redirectTo);
+        setGoogleLoading(false); // 停止加載
+        const redirectTo = location.state?.from?.pathname || "/";
+        navigate(redirectTo); // 登錄成功後跳轉到上個頁面
       }, 1000);
+      console.log("成功:", response.data);
     } catch (error) {
-      setLoading(false);
-      setError('Google 登錄失敗');
-      console.error(error);
+      setGoogleLoading(false); // 停止加載
+      console.error("Google 登錄失敗：", error);
+      setError("Google 登錄失敗，請稍後再試");
     }
   };
 
@@ -125,36 +165,51 @@ const Login = () => {
           <label htmlFor="passwd">密碼</label>
         </div>
 
-        <div className="remember-forget">
-          <label>
-            <input type="checkbox" disabled={loading} /> {/* 登錄中禁用復選框 */}
-            記住我
-          </label>
-          <a href="#">忘記密碼?</a>
-        </div>
-
-        <button className="login-btn" type="submit" disabled={loading}> {/* 登錄中禁用按鈕 */}
-          {loading ? <Spinner size="sm" /> : '登入'} {/* 根據 loading 狀態顯示轉圈圈或"登入" */}
+        <button className="login-btn" type="submit" disabled={loading}>
+          {" "}
+          {/* 登錄中禁用按鈕 */}
+          {loading ? <Spinner size="sm" /> : "登入"}{" "}
+          {/* 根據 loading 狀態顯示轉圈圈或"登入" */}
         </button>
 
-        {/* <div className="google-login">
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          width="100%"
+          mt={5} // 設置與上方物件的距離
+          mb={5} // 設置與下方物件的距離
+        >
+          <Checkbox isDisabled={loading} ml={10}>
+            記住我
+          </Checkbox>
+          <Link href="#" mr={10}>
+            忘記密碼?
+          </Link>
+        </Box>
+
+        <Box className="google-login">
           <Button
             onClick={handleGoogleLogin}
-            disabled={loading}
-            width="320px"  
-            height="50px"  
-            backgroundColor="white"
-            color="#4285F4"
+            disabled={googleLoading}
+            display="flex"
+            alignItems="center"
+            backgroundColor="#4285F4"
+            color="white"
             border="1px solid #4285F4"
-            _hover={{ backgroundColor: '#f5f5f5' }}
-            _disabled={{ opacity: 0.6, cursor: 'not-allowed' }}
-            leftIcon={
+            _hover={{ backgroundColor: "#357ae8" }}
+            _disabled={{ opacity: 0.6, cursor: "not-allowed" }}
+            px={4}
+            py={2}
+            width="100%" // 確保按鈕寬度固定
+            maxWidth="350px" // 您可以根據需要調整這個值
+          >
+            <Box mr={0}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 48 48"
                 width="24px"
                 height="24px"
-                style={{ marginRight: '8px' }}
               >
                 <path
                   fill="#4285F4"
@@ -174,11 +229,18 @@ const Login = () => {
                 />
                 <path fill="none" d="M0 0h48v48H0z" />
               </svg>
-            }
-          >
-            使用 Google 登錄
+            </Box>
+            <Box width="170px" textAlign="center">
+              {googleLoading ? (
+                <Spinner size="sm" color="white" mr={1} />
+              ) : (
+                <Text color="white" mt={4}>
+                  Sign up with Google
+                </Text>
+              )}
+            </Box>
           </Button>
-        </div> */}
+        </Box>
 
         <div className="register-link">
           <p>

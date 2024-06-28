@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -6,14 +6,14 @@ import {
   FormLabel,
   Input,
   Heading,
-} from '@chakra-ui/react';
-import axios from 'axios';
-import Cookies from 'js-cookie';
+} from "@chakra-ui/react";
+import axios from "axios";
+import Cookies from "js-cookie";
 
 const ChangePassword = () => {
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,14 +24,14 @@ const ChangePassword = () => {
     }
 
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get("token");
       if (!token) {
         alert("未找到token，請重新登錄");
         return;
       }
 
       const response = await axios.post(
-        'http://localhost:8080/user/change-password',
+        "http://localhost:8080/user/change-password",
         { oldPassword, newPassword, confirmPassword },
         {
           headers: {
@@ -41,8 +41,8 @@ const ChangePassword = () => {
       );
       console.log(response.data);
       alert("密碼更改成功請重新登入");
-      Cookies.remove('token');
-      window.location.href = '/login';
+      Cookies.remove("token");
+      window.location.href = "/login";
     } catch (error) {
       console.error(error);
       if (error.response && error.response.status === 401) {
@@ -55,17 +55,17 @@ const ChangePassword = () => {
 
   return (
     <Box
-      maxWidth="600px"
-      margin="0 auto"
-      padding="20px"
       boxShadow="lg"
-      backgroundColor="white"
-      borderRadius="8px"
+      borderRadius="md"
       color="black"
+      direction="column"
+      h="full"
+      justifyContent="center"
+      maxW="800px"
+      mx="auto"
+      p="6"
+      bg="white"
     >
-      <Heading as="h2" size="lg" marginBottom="20px">
-        更改密碼
-      </Heading>
       <form onSubmit={handleSubmit}>
         <FormControl marginBottom="20px">
           <FormLabel htmlFor="old-password" fontWeight="bold">
@@ -113,7 +113,7 @@ const ChangePassword = () => {
           cursor="pointer"
           fontSize="16px"
           fontWeight="bold"
-          _hover={{ backgroundColor: '#0056b3' }}
+          _hover={{ backgroundColor: "#0056b3" }}
         >
           保存更改
         </Button>
