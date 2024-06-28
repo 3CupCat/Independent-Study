@@ -192,6 +192,7 @@ const Booking = () => {
         seatPosition:[],
         ticketTypeId: [],
       });
+      console.log(updateBookingData);
       const newUrl = `${window.location.pathname}/seats`;
       navigate(newUrl);
     }

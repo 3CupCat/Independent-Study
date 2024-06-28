@@ -55,6 +55,7 @@ const SeatSelector = ({ seats, toggleSeat }) => {
       const currentPath = window.location.pathname;
       const newPath = currentPath.replace('/seats', '/order');
       const newUrl = `${newPath}`;
+      console.log(bookingData);
       navigate(newUrl);
     } catch (error) {
       if (error.response) {
@@ -116,11 +117,18 @@ const SeatSelector = ({ seats, toggleSeat }) => {
           </div>
         </div>
        
-        <Row className="justify-content-center mt-3">
-          <Col xs="auto">
-            <Button onClick={handleSubmit}>Next</Button>
-          </Col>
-        </Row>
+        <Row className="d-flex justify-content-center">
+        <Col sm={4} md={4} lg={3}>
+          <Button
+            variant="outline-light"
+            className="w-100"
+            size="lg"
+            onClick={handleSubmit}
+          >
+            下一步
+          </Button>
+        </Col>
+      </Row>
         <Modal show={showAlert} onHide={() => setShowAlert(false)} centered>
           <Modal.Header closeButton>
             <Modal.Title style={{ color: 'red' }}>警告</Modal.Title>

@@ -23,7 +23,7 @@ const SeatLayout = () => {
     seat: selectedSeats.map(seat => `${seat.row_num}排, ${seat.seat_number}號`),
     quantity: selectedSeats.length,
   });
-
+  console.log(bookingData);
   const convertTo2DArray = (data) => {
     const rows = {};
     data.forEach(seat => {
@@ -49,6 +49,7 @@ const SeatLayout = () => {
           const initialLayout = layoutData.map(seat => ({
             ...seat,
             status: seat.is_aisle ? 'aisle' : 'available',
+            showtime_id: bookingData.showTimeId,
           }));
           console.log("Initial Layout with Aisle Status:", initialLayout);
 
@@ -64,12 +65,12 @@ const SeatLayout = () => {
           // Update seat status
           const updatedLayout = initialLayout.map(seat => {
             const statusSeat = statusData.find(s => s.seat_number === seat.seat_number && s.row_num === seat.row_num);
-            console.log("statusSeat", statusSeat)
+            console.log("statusSeat for seat", seat.row_num, seat.seat_number, ":", statusSeat);
             if (statusSeat) {
-              return { ...seat, status: statusSeat.seat_status };
+                return { ...seat, status: statusSeat.seat_status };
             }
             return seat;
-          });
+        });
 
           seatsRef.current = updatedLayout;
           setSeats(updatedLayout);
