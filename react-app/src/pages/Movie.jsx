@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faYoutube } from "@fortawesome/free-brands-svg-icons";
+import { faYoutube } from "@fortawesome/free-brands-svg-icons"; // 确保正确导入 faYoutube 图标
 import { faStar } from "@fortawesome/free-solid-svg-icons";
-import { Container, Row, Col, Button, Card, Image } from "react-bootstrap";
+import { Container, Row, Col, Button, Card, Carousel } from "react-bootstrap";
+import { Link, useLocation } from "react-router-dom";
 import "../pages/moviestyle.css";
-import { Link } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 
 const Detail = () => {
+  const location = useLocation();
+  const { movieDetails: movie } = location.state;
   const isLargeScreen = useMediaQuery({ query: "(min-width: 768px)" });
-  const [isHidden, setIsHidden] = useState(false);
-
-  useEffect(() => {
+  const [isHidden, setIsHidden] = React.useState(false);
+  const averageScore =
+    movie.reviews.reduce((acc, review) => acc + review.score, 0) /
+    movie.reviews.length;
+  React.useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      if (scrollY > 400) {
-        setIsHidden(true);
-      } else {
-        setIsHidden(false);
-      }
+      setIsHidden(scrollY > 400);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -28,6 +28,10 @@ const Detail = () => {
     };
   }, []);
 
+  if (!movie) return <div>Loading...</div>;
+  console.log("movie:", movie);
+  // console.log("still",movie.stills);
+  // console.log("actor:",movie.actors);
   return (
     <Container className="bg-dark text-white mt-7 MDmoviestyle-text">
       <div
@@ -42,7 +46,7 @@ const Detail = () => {
           overflowX: "hidden",
         }}
       >
-        <Link to="/booking/01">
+        <Link to={`/booking/${movie.id}`}>
           <Button
             className="MDmoviestyle-text"
             style={{ padding: "8px 5px", fontWeight: "600" }}
@@ -56,24 +60,26 @@ const Detail = () => {
           <div className="mdmoviestyle-img-wrapper img-fluid position-relative">
             <img
               className="mdmoviestyle-img img-fluid"
-              src="/bg1.jpg"
-              alt="moviep"
+              src={movie.poster}
+              alt={movie.title}
             />
-            <Link
+            <a
               className="position-absolute top-50 start-50 translate-middle"
-              to="https://www.youtube.com/watch?v=DHUpvwyb49o"
+              href={`https://www.youtube.com/watch?v=${movie.trailer}`}
+              target="_blank"
+              rel="noopener noreferrer"
             >
               <FontAwesomeIcon
                 icon={faYoutube}
                 style={{ color: "#f90101", fontSize: "60px" }}
               />
-            </Link>
+            </a>
             <div
               className={"position-absolute"}
               style={{ bottom: "-55px", left: "0", padding: "3px" }}
             >
-              <h1 className="me-5">猩球崛起：王國誕生</h1>
-              <h3>Kingdom of the Planet of the Apes</h3>
+              <h1 className="me-5">{movie.title}</h1>
+              <h3>{movie.title_english}</h3>
             </div>
             <div
               className={
@@ -87,8 +93,8 @@ const Detail = () => {
               }}
             >
               <img
-                src="/comment1.jpg"
-                alt="movie1"
+                src={movie.poster}
+                alt={movie.title}
                 className={isLargeScreen ? "img-fluid" : "ms-dispaly-none"}
                 style={{
                   width: "100%",
@@ -100,7 +106,7 @@ const Detail = () => {
                   marginBottom: "10px",
                 }}
               />
-              <Link to="/booking/01">
+              <Link to={`/booking/${movie.id}`}>
                 <Button
                   className={isLargeScreen ? " " : "ms-dispaly-none"}
                   style={{ width: "100%", fontWeight: "600" }}
@@ -115,69 +121,91 @@ const Detail = () => {
       <Row className="mt-5">
         <Col className="mt-2">
           <hr className="mshr-style" />
-          <span className="msborder-style MDmoviestyle-text-small">保護級</span>
+          <span className="msborder-style MDmoviestyle-text-small">
+            {movie.rating}
+          </span>
           <span className="msborder-style">
-            <span className="MDmoviestyle-text-small">評分4.8</span>{" "}
             <FontAwesomeIcon
               icon={faStar}
               style={{ color: "#FFD43B", fontSize: "18px" }}
             />
+            <span className="MDmoviestyle-text-small">
+              {averageScore.toFixed(1)}
+            </span>{" "}
           </span>
-          <span className="msborder-style MDmoviestyle-text-small">動作片</span>
           <span className="msborder-style MDmoviestyle-text-small">
-            105分鐘
+            {movie.genre}
           </span>
+          <span className="msborder-style MDmoviestyle-text-small">
+            {movie.runtime}分鐘
+          </span>
+          <div className="mt-3 MDmoviestyle-text-small">{movie.synopsis}</div>
           <div className="mt-3 MDmoviestyle-text-small">
-            故事背景發生在凱撒統治過後的幾世代。
-            猩猩主導著世界，而人類則被迫在陰影中苟延殘喘的生活。
-            隨著新的暴君領袖崛起，一隻年輕的猩猩踏上了一段質疑自己過去信念的旅程，牠也將做出影響猩猩和人類未來命運的選擇。
-          </div>
-          <div className="mt-3 MDmoviestyle-text-small">
-            導演: 魯伯特·瓦耶特
+            導演: {movie.director}
           </div>
           <div className="MDmoviestyle-text-small">
-            主演: 安迪·瑟金斯 / 詹姆斯·弗蘭科 / 芙蕾達·平托 / 約翰·利思戈 /
-            布萊恩·考克斯
+            主演: {movie.actors.map((actor) => actor.name).join(" / ")}
           </div>
-          <div className="MDmoviestyle-text-small">語言: 英文 / 中文</div>
+          <div className="MDmoviestyle-text-small">語言: {movie.language}</div>
         </Col>
       </Row>
       <Row className="mt-5 justify-content-between">
         <h4>精彩劇照</h4>
-        <img
-          className="ms-stills col-xxl-4 col-xl-12 col-lg-12 d-flex justify-content-center mb-3"
-          src="/moviep1.jpg"
-          alt="moviep"
-        ></img>
-        <img
-          className="ms-stills col-xxl-4 col-xl-12 col-lg-12 d-flex justify-content-center mb-3"
-          src="/moviep2.jpg"
-          alt="moviep"
-        ></img>
-        <img
-          className="ms-stills col-xxl-4 col-xl-12 col-lg-12 d-flex justify-content-center mb-3"
-          src="/moviep3.jpg"
-          alt="moviep"
-        ></img>
+        {movie.stills.map((still, index) => (
+          <img
+            key={index}
+            className="ms-stills col-xxl-4 col-xl-12 col-lg-12 d-flex justify-content-center mb-3"
+            src={still.stills}
+            alt={`still-${index}`}
+          ></img>
+        ))}
       </Row>
       <Row className="mt-5 justify-content-between">
         <h4>主要演員</h4>
-        <img
-          className="ms-stills col-xxl-4 col-xl-12 col-lg-12 d-flex justify-content-center mb-3"
-          src="/actor1.jpg"
-          alt="moviep"
-        ></img>
-        <img
-          className="ms-stills col-xxl-4 col-xl-12 col-lg-12 d-flex justify-content-center mb-3"
-          src="/actor2.jpg"
-          alt="moviep"
-        ></img>
-        <img
-          className="ms-stills col-xxl-4 col-xl-12 col-lg-12 d-flex justify-content-center mb-3"
-          src="/actor3.jpg"
-          alt="moviep"
-        ></img>
+        <Carousel indicators={false} controls={false}>
+          {movie.actors
+            .reduce((result, actor, index) => {
+              const chunkIndex = Math.floor(index / 3);
+
+              if (!result[chunkIndex]) {
+                result[chunkIndex] = []; // 初始化新的一组
+              }
+
+              result[chunkIndex].push(
+                <Col
+                  key={index}
+                  className="col-4 d-flex flex-column align-items-center mb-3"
+                >
+                  <img
+                    className="ms-stills"
+                    src={actor.actors}
+                    alt={`actor-${index}`}
+                    style={{
+                      width: "550px",
+                      height: "350px",
+                      objectFit: "cover",
+                    }} // 设置图片宽高一致，并保持比例
+                  />
+                  <div
+                    className="mt-2 text-center"
+                    style={{ fontSize: "18px" }}
+                  >
+                    {actor.name}
+                  </div>{" "}
+                  {/* 设置字体大小 */}
+                </Col>
+              );
+
+              return result;
+            }, [])
+            .map((chunk, chunkIndex) => (
+              <Carousel.Item key={chunkIndex}>
+                <Row>{chunk}</Row>
+              </Carousel.Item>
+            ))}
+        </Carousel>
       </Row>
+
       <Row className="d-flex justify-content-start mt-5">
         <Col>
           <span className="h4 me-3">精彩評論</span>
@@ -187,24 +215,66 @@ const Detail = () => {
             </Link>
           </span>
           <hr className="mshr-style" />
-          <Card className="mt-3 MDmoviestyle-body MDmoviestyle-text">
-            觀眾甲
-            <div className="mt-2 msuser-comment">
-              影片情節緊湊，令人不禁感嘆猩猩的顯赫智力和領袖風範。
-            </div>
-          </Card>
-          <Card className="mt-3 MDmoviestyle-body MDmoviestyle-text">
-            觀眾乙
-            <div className="mt-2 msuser-comment">
-              從開始到結束都非常引人入勝，猩猩和人類之間的衝突展現得淋漓盡致。
-            </div>
-          </Card>
-          <Card className="mt-3 MDmoviestyle-body MDmoviestyle-text">
-            影評丙
-            <div className="mt-2 msuser-comment">
-              這部電影成功地將情感和動作交織在一起，不愧是年度大片。
-            </div>
-          </Card>
+          {movie.reviews.map((review, index) => (
+            <Card
+              key={index}
+              className="mt-3 MDmoviestyle-body MDmoviestyle-text bg-dark text-white position-relative"
+            >
+              <Card.Body>
+                <div className="d-flex align-items-start">
+                  <div style={{ marginTop: "15px" }}>
+                    <img
+                      src={review.photo}
+                      alt={review.nickName}
+                      className="me-3"
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        borderRadius: "50%",
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <div className="d-flex flex-column">
+                      <Card.Title className="mb-0 small">
+                        {`${review.nickName}`}
+                        <span
+                          className="text-muted ms-2"
+                          style={{ fontSize: "0.8em" }}
+                        >
+                          {[...Array(5)].map((_, i) => (
+                            <FontAwesomeIcon
+                              key={i}
+                              icon={faStar}
+                              style={{
+                                color: i < review.score ? "yellow" : "gray",
+                              }}
+                            />
+                          ))}
+                        </span>
+                      </Card.Title>
+                    </div>
+                    <div>{review.comment}</div>
+                  </div>
+                </div>
+              </Card.Body>
+              <div
+                className="position-absolute"
+                style={{
+                  bottom: "10px",
+                  right: "10px",
+                  fontSize: "0.8em",
+                  color: "white",
+                }}
+              >
+                {new Date(review.reviewDate).toLocaleDateString()}{" "}
+                {new Date(review.reviewDate).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+            </Card>
+          ))}
         </Col>
       </Row>
     </Container>

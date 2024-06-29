@@ -8,6 +8,7 @@ import {
   Image,
   useColorModeValue,
 } from "@chakra-ui/react";
+import axios from "axios";
 import ButtonHome from "../components/Button/ButtonHome";
 
 const Overview = () => {
@@ -50,8 +51,17 @@ const Overview = () => {
     fetchMovies();
   }, []);
 
-  const handleMovieClick = (path) => {
-    navigate(path);
+  const handleMovieClick = async (id) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/movies/details/${id}`
+      );
+      const movieDetails = response.data;
+      console.log("movie:", movieDetails);
+      navigate(`/movies/${id}`, { state: { movieDetails } });
+    } catch (error) {
+      console.error("Error fetching movie details:", error);
+    }
   };
 
   const movies = isPlaying ? playingMovies : upcomingMovies;
@@ -95,7 +105,7 @@ const Overview = () => {
                 direction="column"
                 alignItems="center"
                 mt={{ base: "6", md: "6", lg: "12" }}
-                onClick={() => handleMovieClick(`/movies/${movie.id}`)}
+                onClick={() => handleMovieClick(movie.id)}
                 cursor="pointer"
                 onMouseEnter={() => setHoveredMovie(index)}
                 onMouseLeave={() => setHoveredMovie(null)}
