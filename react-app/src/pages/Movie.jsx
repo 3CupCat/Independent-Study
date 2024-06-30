@@ -1,20 +1,24 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faYoutube } from "@fortawesome/free-brands-svg-icons"; // 确保正确导入 faYoutube 图标
+import { faYoutube } from "@fortawesome/free-brands-svg-icons";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { Container, Row, Col, Button, Card, Carousel } from "react-bootstrap";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../pages/moviestyle.css";
 import { useMediaQuery } from "react-responsive";
+import axios from "axios";
+import Cookies from "js-cookie";
 
 const Detail = () => {
   const location = useLocation();
-  const { movieDetails: movie } = location.state;
+  const navigate = useNavigate();
+  const movie = location.state?.movieDetails || {};
   const isLargeScreen = useMediaQuery({ query: "(min-width: 768px)" });
   const [isHidden, setIsHidden] = React.useState(false);
   const averageScore =
-    movie.reviews.reduce((acc, review) => acc + review.score, 0) /
-    movie.reviews.length;
+    movie.reviews?.reduce((acc, review) => acc + review.score, 0) /
+    (movie.reviews?.length || 1);
+
   React.useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
@@ -28,12 +32,30 @@ const Detail = () => {
     };
   }, []);
 
-  if (!movie) return <div>Loading...</div>;
-  console.log("movie:", movie);
-  // console.log("still",movie.stills);
-  // console.log("actor:",movie.actors);
+  if (!movie.title) return <div>Loading...</div>;
+
+  const handleViewMore = async () => {
+    try {
+      const token = Cookies.get("token");
+      const response = await axios.get(
+        `http://localhost:8080/reviews/${movie.id}`,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        }
+      );
+
+      const reviewDetailDto = response.data;
+      console.log(reviewDetailDto);
+      navigate("/reviews", { state: { movieId: movie.id, reviewDetailDto } });
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    }
+  };
+
   return (
-    <Container className="bg-dark text-white mt-7 MDmoviestyle-text">
+    <Container className="bg-dark text-white mt-4 MDmoviestyle-text pt-5">
       <div
         className="position-fixed"
         style={{
@@ -144,14 +166,14 @@ const Detail = () => {
             導演: {movie.director}
           </div>
           <div className="MDmoviestyle-text-small">
-            主演: {movie.actors.map((actor) => actor.name).join(" / ")}
+            主演: {movie.actors?.map((actor) => actor.name).join(" / ")}
           </div>
           <div className="MDmoviestyle-text-small">語言: {movie.language}</div>
         </Col>
       </Row>
       <Row className="mt-5 justify-content-between">
         <h4>精彩劇照</h4>
-        {movie.stills.map((still, index) => (
+        {movie.stills?.map((still, index) => (
           <img
             key={index}
             className="ms-stills col-xxl-4 col-xl-12 col-lg-12 d-flex justify-content-center mb-3"
@@ -164,7 +186,7 @@ const Detail = () => {
         <h4>主要演員</h4>
         <Carousel indicators={false} controls={false}>
           {movie.actors
-            .reduce((result, actor, index) => {
+            ?.reduce((result, actor, index) => {
               const chunkIndex = Math.floor(index / 3);
 
               if (!result[chunkIndex]) {
@@ -210,12 +232,15 @@ const Detail = () => {
         <Col>
           <span className="h4 me-3">精彩評論</span>
           <span className="MDmoviestyle-text-small">
-            <Link to="/reviews" className="text-decoration-underline">
+            <Button
+              onClick={handleViewMore}
+              className="text-decoration-underline"
+            >
               查看更多
-            </Link>
+            </Button>
           </span>
           <hr className="mshr-style" />
-          {movie.reviews.map((review, index) => (
+          {movie.reviews?.map((review, index) => (
             <Card
               key={index}
               className="mt-3 MDmoviestyle-body MDmoviestyle-text bg-dark text-white position-relative"

@@ -14,6 +14,7 @@ import {
 import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
 import PropTypes from "prop-types";
 import Cookies from "js-cookie";
+import axios from "axios";
 import logo from "../assets/logo.svg";
 
 function NavBar() {
@@ -120,10 +121,18 @@ function Search() {
     }
   };
 
-  const handleResultClick = (id) => {
-    setQuery("");
-    setResults([]);
-    navigate(`/movies/${id}`);
+  const handleResultClick = async (id) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/movies/details/${id}`
+      );
+      const movieDetails = response.data;
+      setQuery("");
+      setResults([]);
+      navigate(`/movies/${id}`, { state: { movieDetails } });
+    } catch (error) {
+      console.error("Error fetching movie details:", error);
+    }
   };
 
   return (

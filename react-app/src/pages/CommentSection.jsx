@@ -1,100 +1,164 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar, faStarHalfAlt } from "@fortawesome/free-solid-svg-icons";
 import {
-  faStar,
-  faHeart,
-  faHeartCrack,
-  faFlag,
-} from "@fortawesome/free-solid-svg-icons";
-import {
-  Box,
+  Container,
+  Row,
+  Col,
   Image,
-  Text,
-  Flex,
-  Progress,
   Button,
-  Input,
+  InputGroup,
+  FormControl,
+  Card,
   Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  useDisclosure,
-  VStack,
-  HStack,
-  Divider,
-  Avatar,
-  IconButton,
-} from "@chakra-ui/react";
+  ProgressBar,
+} from "react-bootstrap";
+import axios from "axios";
+import Cookies from "js-cookie";
+import { useLocation, useNavigate } from "react-router-dom";
+import "../pages/moviestyle.css";
 
-// Rating Function Component
 const Rating = () => {
-  const [messages, setMessages] = useState([
-    {
-      user: "三杯鴨",
-      time: "2024/06/29 15:21:13",
-      rating: 5,
-      message: "非常好看，讓我想起了被猩猩支配的恐懼！",
-      likeCount: 1000,
-      crackCount: 100,
-    },
-  ]);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { movieId, reviewDetailDto } = location.state || {};
+  const [messages, setMessages] = useState(reviewDetailDto?.comments || []);
   const [ratingStats, setRatingStats] = useState({
-    1: 2,
-    2: 20,
-    3: 15,
-    4: 20,
-    5: 120,
+    1: reviewDetailDto?.oneStarRate || 0,
+    2: reviewDetailDto?.twoStarRate || 0,
+    3: reviewDetailDto?.threeStarRate || 0,
+    4: reviewDetailDto?.fourStarRate || 0,
+    5: reviewDetailDto?.fiveStarRate || 0,
   });
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [rating, setRating] = useState(0);
-  const [message, setMessage] = useState("");
   const [review, setReview] = useState("");
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editReviewId, setEditReviewId] = useState(null);
+  const [editReviewContent, setEditReviewContent] = useState("");
+  const [editReviewRating, setEditReviewRating] = useState(0);
+  const [userReview, setUserReview] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteReviewId, setDeleteReviewId] = useState(null);
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isReportOpen,
-    onOpen: onReportOpen,
-    onClose: onReportClose,
-  } = useDisclosure();
+  useEffect(() => {
+    const fetchUserReview = async () => {
+      const token = Cookies.get("token");
+      if (token) {
+        try {
+          const response = await axios.get(
+            `http://localhost:8080/reviews/${movieId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setUserReview(response.data);
+        } catch (error) {
+          console.error("Error fetching user review:", error);
+        }
+      }
+    };
+    fetchUserReview();
+  }, [movieId]);
 
   const handleStarClick = (star) => {
     setRating(star);
   };
 
-  const handleLikeClick = (index) => {
-    setMessages((prevMessages) => {
-      const updatedMessages = [...prevMessages];
-      updatedMessages[index] = {
-        ...updatedMessages[index],
-        likeCount: (updatedMessages[index].likeCount || 0) + 1,
-      };
-      return updatedMessages;
-    });
+  const handleMessageSubmit = async () => {
+    if (rating < 1) {
+      alert("評分星數最低為一顆星");
+      return;
+    }
+    try {
+      const token = Cookies.get("token");
+      if (!token) {
+        setShowLoginModal(true);
+        return;
+      }
+
+      await axios.post(
+        `http://localhost:8080/reviews/${movieId}`,
+        { score: rating, comment: review },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setMessages((prevMessages) => [
+        {
+          reviewId: Date.now(),
+          comment: review,
+          score: rating,
+          reviewDate: new Date(),
+          nickName: "您",
+          isUser: true,
+        },
+        ...prevMessages,
+      ]);
+      setReview("");
+      setRating(0);
+    } catch (error) {
+      console.error("Error submitting review:", error);
+    }
   };
 
-  const handleCrackClick = (index) => {
-    setMessages((prevMessages) => {
-      const updatedMessages = [...prevMessages];
-      updatedMessages[index] = {
-        ...updatedMessages[index],
-        crackCount: (updatedMessages[index].crackCount || 0) + 1,
-      };
-      return updatedMessages;
-    });
+  const handleEditClick = (msg) => {
+    setEditReviewId(msg.reviewId);
+    setEditReviewContent(msg.comment);
+    setEditReviewRating(msg.score);
+    setShowEditModal(true);
   };
 
-  const handleMessageSubmit = (messageData) => {
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { ...messageData, likeCount: 0, crackCount: 0 },
-    ]);
-    setRatingStats((prevStats) => ({
-      ...prevStats,
-      [messageData.rating]: prevStats[messageData.rating] + 1,
-    }));
+  const handleEditSubmit = async () => {
+    try {
+      const token = Cookies.get("token");
+      await axios.put(
+        `http://localhost:8080/reviews/${movieId}`,
+        { score: editReviewRating, comment: editReviewContent },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.reviewId === editReviewId
+            ? { ...msg, comment: editReviewContent, score: editReviewRating }
+            : msg
+        )
+      );
+      setShowEditModal(false);
+    } catch (error) {
+      console.error("Error updating review:", error);
+    }
+  };
+
+  const handleDeleteClick = (msg) => {
+    setDeleteReviewId(msg.reviewId);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteSubmit = async () => {
+    try {
+      const token = Cookies.get("token");
+      await axios.delete(`http://localhost:8080/reviews/${movieId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setMessages((prevMessages) =>
+        prevMessages.filter((msg) => msg.reviewId !== deleteReviewId)
+      );
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error("Error deleting review:", error);
+    }
   };
 
   const calculatePercentages = () => {
@@ -106,258 +170,281 @@ const Rating = () => {
 
     const percentages = {};
     for (let i = 1; i <= 5; i++) {
-      percentages[i] = ((ratingStats[i] / totalRatings) * 100).toFixed(2);
-      percentages[i] = parseFloat(percentages[i]);
+      percentages[i] = Math.round((ratingStats[i] / totalRatings) * 100);
     }
     return percentages;
   };
 
-  const calculateAverageRating = () => {
-    const totalRating = messages.reduce((sum, msg) => sum + msg.rating, 0);
-    const totalMessages = messages.length;
-    if (totalMessages === 0) return "";
+  const renderStars = (currentRating, onClick) => {
+    const fullStars = Math.floor(currentRating);
+    const halfStar = currentRating % 1 >= 0.5;
 
-    return (totalRating / totalMessages).toFixed(1);
+    return (
+      <div>
+        {[...Array(fullStars)].map((_, i) => (
+          <FontAwesomeIcon
+            key={i}
+            icon={faStar}
+            style={{ color: "#FFD700", cursor: "pointer" }}
+            onClick={() => onClick(i + 1)}
+          />
+        ))}
+        {halfStar && (
+          <FontAwesomeIcon
+            icon={faStarHalfAlt}
+            style={{ color: "#FFD700", cursor: "pointer" }}
+            onClick={() => onClick(fullStars + 0.5)}
+          />
+        )}
+        {[...Array(5 - fullStars - (halfStar ? 1 : 0))].map((_, i) => (
+          <FontAwesomeIcon
+            key={fullStars + i + 1}
+            icon={faStar}
+            style={{ color: "#d3d3d3", cursor: "pointer" }}
+            onClick={() => onClick(fullStars + i + 1)}
+          />
+        ))}
+      </div>
+    );
   };
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    onClose();
-  };
-
-  const handleMessageChange = (event) => {
-    setMessage(event.target.value);
-  };
-
-  const handleSubmit = () => {
-    const currentTime = new Date();
-    if (rating < 1) {
-      alert("評分星數最低為一顆星");
-      return;
-    }
-    handleMessageSubmit({ message, rating, time: currentTime });
-    setMessage("");
-    setRating(0);
-  };
-
-  const renderStars = () => {
-    return [1, 2, 3, 4, 5].map((star) => (
-      <FontAwesomeIcon
-        key={star}
-        icon={faStar}
+  const getInitialsAvatar = (nickname) => {
+    const firstChar = nickname ? nickname.charAt(0).toUpperCase() : "匿";
+    return (
+      <div
         style={{
-          color: star <= rating ? "#FFD700" : "#d3d3d3",
-          cursor: "pointer",
+          width: "50px",
+          height: "50px",
+          borderRadius: "50%",
+          backgroundColor: "#add8e6",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#fff",
+          fontSize: "24px",
+          fontWeight: "bold",
         }}
-        onClick={() => handleStarClick(star)}
-      />
-    ));
+      >
+        {firstChar}
+      </div>
+    );
   };
 
   const percentages = calculatePercentages();
-  const averageRating = calculateAverageRating();
+  const averageRating = reviewDetailDto.scoreAvg.toFixed(1);
 
   return (
-    <Box bg="gray.800" color="white" p={5}>
-      <Flex>
-        <Image
-          src="/comment1.jpg"
-          alt="movie1"
-          boxSize="600px"
-          objectFit="cover"
-          mt={10}
-        />
-        <Box ml={6} flex="1">
-          <Text fontSize="4xl" mt={10}>
-            猩球崛起：王國誕生
-          </Text>
-          <HStack align="flex-start" mt={4} spacing={6}>
-            <VStack align="center" spacing={2} mt={1} ms={7} me={6}>
-              <Text fontSize="6xl">{averageRating || "3.7"}</Text>
-              <Flex>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <FontAwesomeIcon
-                    key={star}
-                    icon={faStar}
-                    style={{
-                      color:
-                        star <= Math.round(averageRating)
-                          ? "#FFD700"
-                          : "#d3d3d3",
-                    }}
-                  />
-                ))}
-              </Flex>
-              <Text>2000 則評論</Text>
-            </VStack>
-            <VStack align="flex-start" spacing={0} w="80%">
-              {[5, 4, 3, 2, 1].map((star) => (
-                <HStack key={star} align="center" w="full" spacing={0}>
-                  <Text w="10%" ms={5}>
-                    {star}
-                  </Text>
-                  <Progress
-                    value={percentages[star]}
-                    colorScheme={
-                      star === 5
-                        ? "green"
-                        : star === 4
-                        ? "blue"
-                        : star === 3
-                        ? "yellow"
-                        : star === 2
-                        ? "red"
-                        : "gray"
-                    }
-                    size="lg"
-                    w="80%"
-                  />
-                  <Text w="10%" ms={2}>
-                    {percentages[star]}%
-                  </Text>
-                </HStack>
-              ))}
-            </VStack>
-          </HStack>
-          <Divider orientation="horizontal" borderColor="gray.500" mt={8} />
-          <Flex mt={4}>
-            <Button colorScheme="blue" mr={3}>
-              現正熱映
-            </Button>
-            <Button colorScheme="blue">大多好評</Button>
-          </Flex>
-        </Box>
-      </Flex>
-      <Box bg="gray.800" color="white" p={5} borderRadius="md" w="full" mt={10}>
-        <VStack align="flex-start" spacing={4}>
-          <Text fontSize="2xl">我的評價</Text>
-          <HStack spacing={2}>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <FontAwesomeIcon
-                key={star}
-                icon={faStar}
-                style={{
-                  color: star <= rating ? "#FFD700" : "#d3d3d3",
-                  cursor: "pointer",
-                }}
-                onClick={() => handleStarClick(star)}
+    <Container className="bg-dark text-white mt-4 pt-5 ps-0 pe-0">
+      <Row className="justify-content-center">
+        <Col lg={10}>
+          <Row className="mt-2">
+            <Col lg={3}>
+              <Image
+                src={reviewDetailDto.poster}
+                alt={reviewDetailDto.title}
+                style={{ width: "100%", height: "auto" }}
               />
-            ))}
-          </HStack>
-          <Flex w="full" align="center" bg="gray.700" p={2} borderRadius="md">
-            <Avatar size="md" src="your-avatar-url.png" mr={4} />
-            <Input
+            </Col>
+            <Col lg={3} className="p-0">
+              <h2 className="mt-0 ms-1">{reviewDetailDto.title}</h2>
+              <div className="d-flex flex-column align-items-center">
+                <h2 className="mt-2">{averageRating}</h2>
+                <div className="mt-2">
+                  {renderStars(averageRating, handleStarClick)}
+                </div>
+                <p className="mt-2">
+                  {reviewDetailDto.totalCommentsNum} 則評論
+                </p>
+              </div>
+            </Col>
+
+            <Col lg={6} className="mt-4 p-0">
+              <div className="mt-2">
+                {[5, 4, 3, 2, 1].map((star) => (
+                  <div key={star} className="d-flex align-items-center mb-2">
+                    <span className="me-2 small">{star}</span>
+                    <ProgressBar
+                      now={percentages[star]}
+                      variant={"success"}
+                      style={{ flex: 1, height: "10px" }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </Col>
+          </Row>
+          <hr className="w-100 bg-white mb-3" />
+          <Row>
+            <div className="mt-1 ms-0">
+              {reviewDetailDto.isPlaying && (
+                <Button variant="primary" size="sm" className="me-2">
+                  現正熱映
+                </Button>
+              )}
+              {reviewDetailDto.scoreAvg >= 4 && (
+                <Button variant="primary" size="sm">
+                  大多好評
+                </Button>
+              )}
+            </div>
+          </Row>
+          <h2 className="mt-4 ms-0">我的評價</h2>
+          <div className="d-flex align-items-center">
+            <div>{renderStars(rating, handleStarClick)}</div>
+          </div>
+          <InputGroup className="mt-2">
+            <FormControl
               placeholder="撰寫評論"
               value={review}
               onChange={(e) => setReview(e.target.value)}
-              bg="white"
-              color="black"
-              borderRadius="md"
-              flex="1"
             />
-          </Flex>
-          <Button
-            alignSelf="flex-end"
-            colorScheme="blue"
-            onClick={() => console.log("發布評論")}
-          >
-            發布評論
-          </Button>
-        </VStack>
-        <Divider orientation="horizontal" borderColor="gray.500" mt={12} />
-      </Box>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>請先登入</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Button colorScheme="blue" onClick={handleLogin}>
-              登入
+            <Button variant="primary" onClick={handleMessageSubmit}>
+              發布評論
             </Button>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" onClick={onClose}>
-              關閉
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-      <Box mt={5}>
-        <Text fontSize="2xl" mb={4}>
-          評論區
-        </Text>
-        {messages.map((msg, index) => (
-          <Box key={index} bg="gray.700" p={4} my={3} borderRadius="md">
-            <Flex justifyContent="space-between">
-              <Flex alignItems="center">
-                <Avatar size="md" src="your-avatar-url.png" mr={4} />
-                <Box>
-                  <HStack>
-                    <Text>{msg.user}</Text>
-                    <Text>{msg.time}</Text>
-                  </HStack>
-                  <HStack>
-                    {[...Array(5)].map((_, i) => (
-                      <FontAwesomeIcon
-                        key={i}
-                        icon={faStar}
+          </InputGroup>
+          <hr className="bg-white mt-4" />
+          <h2 className="mt-4 mb-3">評論區</h2>
+          {messages.map((msg, index) => (
+            <Card
+              key={index}
+              className={`mt-3 MDmoviestyle-body MDmoviestyle-text bg-dark text-white position-relative ${
+                msg.isUser ? "border border-warning" : ""
+              }`}
+            >
+              <Card.Body>
+                <div className="d-flex align-items-start">
+                  <div style={{ marginTop: "15px" }}>
+                    {msg.photo ? (
+                      <img
+                        src={msg.photo}
+                        alt={msg.nickName || "匿名用戶"}
+                        className="me-3"
                         style={{
-                          color: i < msg.rating ? "#FFD700" : "#d3d3d3",
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "50%",
                         }}
                       />
-                    ))}
-                  </HStack>
-                </Box>
-              </Flex>
-              <Flex alignItems="center">
-                <IconButton
-                  icon={<FontAwesomeIcon icon={faHeart} />}
-                  colorScheme="red"
-                  variant="ghost"
-                  onClick={() => handleLikeClick(index)}
-                />
-                <Text mx={2}>{msg.likeCount}</Text>
-                <IconButton
-                  icon={<FontAwesomeIcon icon={faHeartCrack} />}
-                  colorScheme="red"
-                  variant="ghost"
-                  onClick={() => handleCrackClick(index)}
-                />
-                <Text mx={2}>{msg.crackCount}</Text>
-                <IconButton
-                  icon={<FontAwesomeIcon icon={faFlag} />}
-                  colorScheme="red"
-                  variant="ghost"
-                />
-              </Flex>
-            </Flex>
-            <Text
-              pt={2}
-              mt={2}
-              border="1px"
-              borderColor="gray.600"
-              p={3}
-              borderRadius="md"
-            >
-              {msg.message}
-            </Text>
-          </Box>
-        ))}
-      </Box>
-      <Modal isOpen={isReportOpen} onClose={onReportClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalCloseButton />
-          <ModalBody>
-            <Text>感謝您的檢舉，我們會盡快為您處理</Text>
-            <Button mt={3} onClick={onReportClose}>
-              關閉
-            </Button>
-          </ModalBody>
-        </ModalContent>
+                    ) : (
+                      getInitialsAvatar(msg.nickName || "匿名用戶")
+                    )}
+                  </div>
+                  <div>
+                    <div className="d-flex flex-column">
+                      <Card.Title className="mb-0 small">
+                        {`${msg.nickName || "匿名用戶"}`}
+                        <span
+                          className="text-muted ms-2"
+                          style={{ fontSize: "0.8em" }}
+                        >
+                          {[...Array(5)].map((_, i) => (
+                            <FontAwesomeIcon
+                              key={i}
+                              icon={faStar}
+                              style={{
+                                color: i < msg.score ? "yellow" : "gray",
+                              }}
+                            />
+                          ))}
+                        </span>
+                      </Card.Title>
+                    </div>
+                    <div>{msg.comment}</div>
+                    {msg.isUser && (
+                      <>
+                        <Button
+                          variant="outline-light"
+                          size="sm"
+                          className="mt-2 me-2"
+                          onClick={() => handleEditClick(msg)}
+                        >
+                          編輯
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          className="mt-2"
+                          onClick={() => handleDeleteClick(msg)}
+                        >
+                          刪除
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </Card.Body>
+              <div
+                className="position-absolute"
+                style={{
+                  bottom: "10px",
+                  right: "10px",
+                  fontSize: "0.8em",
+                  color: "white",
+                }}
+              >
+                {new Date(msg.reviewDate).toLocaleDateString()}{" "}
+                {new Date(msg.reviewDate).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+            </Card>
+          ))}
+        </Col>
+      </Row>
+
+      <Modal show={showLoginModal} onHide={() => setShowLoginModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>請先登入</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Button variant="primary" onClick={() => navigate("/login")}>
+            登入
+          </Button>
+        </Modal.Body>
       </Modal>
-    </Box>
+
+      <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>編輯評論</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="d-flex align-items-center">
+            <div>{renderStars(editReviewRating, setEditReviewRating)}</div>
+          </div>
+          <InputGroup className="mt-2">
+            <FormControl
+              placeholder="編輯評論"
+              value={editReviewContent}
+              onChange={(e) => setEditReviewContent(e.target.value)}
+            />
+          </InputGroup>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+            取消
+          </Button>
+          <Button variant="primary" onClick={handleEditSubmit}>
+            更新評論
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>刪除評論</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>你確定要刪除這條評論嗎？</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            取消
+          </Button>
+          <Button variant="danger" onClick={handleDeleteSubmit}>
+            刪除
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </Container>
   );
 };
 

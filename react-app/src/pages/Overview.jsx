@@ -57,7 +57,7 @@ const Overview = () => {
         `http://localhost:8080/api/movies/details/${id}`
       );
       const movieDetails = response.data;
-      console.log("movie:", movieDetails);
+      console.log(movieDetails);
       navigate(`/movies/${id}`, { state: { movieDetails } });
     } catch (error) {
       console.error("Error fetching movie details:", error);
