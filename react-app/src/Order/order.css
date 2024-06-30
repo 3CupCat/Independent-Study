@@ -115,6 +115,7 @@ tr:nth-of-type(even) td {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 9999;
+  text-align: center;
 }
 
 .custom-padding-top {

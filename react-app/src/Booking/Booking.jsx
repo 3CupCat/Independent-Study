@@ -189,7 +189,7 @@ const Booking = () => {
         title: "", // 該頁未Fetch電影資料
         poster: "",
         seatStatusId: [], // 初始化為未選擇座位
-        seatPosition:[],
+        seatPosition: [],
         ticketTypeId: [],
       });
       console.log(updateBookingData);
@@ -400,12 +400,14 @@ const Booking = () => {
         centered={!isLargeScreen}
       >
         <Modal.Header closeButton>
-          <Modal.Title>
-            允許地理定位
-          </Modal.Title>
+          <Modal.Title>發現附近的影城</Modal.Title>
         </Modal.Header>
-        <Modal.Body className={isLargeScreen ? "custom-modal-content-lg" : "custom-modal-content-m"}>
-          我們需要您的許可來獲取您的地理位置以提供更好的服務。
+        <Modal.Body
+          className={
+            isLargeScreen ? "custom-modal-content-lg" : "custom-modal-content-m"
+          }
+        >
+          開啟定位，我們將幫助您找到您所在城市的影城，提供更精確的服務。是否允許使用定位功能？
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>

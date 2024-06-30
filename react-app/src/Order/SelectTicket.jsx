@@ -159,8 +159,9 @@ const SelectTicket = () => {
       return;
     }
 
-    setLoading(true);
     setError(null);
+    setShowModal(false);
+    setLoading(true);
     try {
       const token = Cookies.get("token");
       const response = await axios.post(
@@ -227,7 +228,6 @@ const SelectTicket = () => {
       console.log(error.config);
     } finally {
       setLoading(false);
-      setShowModal(false);
     }
   };
 
@@ -246,6 +246,13 @@ const SelectTicket = () => {
 
   return (
     <Container className="my-4">
+      {loading && (
+        <div className="loading-overlay">
+          <Spinner animation="border" role="status" className="custom-spinner">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      )}
       <h2 className="text-center">選擇電影票</h2>
       <div
         className={
@@ -332,9 +339,8 @@ const SelectTicket = () => {
             className="w-100"
             size="lg"
             onClick={handleOrderConfirmation}
-            disabled={loading}
           >
-            {loading ? <Spinner animation="border" size="sm" /> : "確認訂單"}
+            確認訂單
           </Button>
         </Col>
       </Row>
@@ -391,6 +397,9 @@ const SelectTicket = () => {
             使用本系統購票成功時，每一張票券須收取預定費（10%），如欲退票者，預定費恕不退還。
           </li>
           <li>如欲退票時，將整筆訂單進行退票，恕不提供單一票券退款。</li>
+          <li>
+            申請退票時，請確保紅利點數足夠且未被使用，否則將收取相應的金額作為紅利點數的補償。
+          </li>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
