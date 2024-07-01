@@ -14,12 +14,12 @@ const Detail = () => {
   const navigate = useNavigate();
   const movie = location.state?.movieDetails || {};
   const isLargeScreen = useMediaQuery({ query: "(min-width: 768px)" });
-  const [isHidden, setIsHidden] = React.useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const averageScore =
     movie.reviews?.reduce((acc, review) => acc + review.score, 0) /
     (movie.reviews?.length || 1);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       setIsHidden(scrollY > 400);
@@ -55,7 +55,7 @@ const Detail = () => {
   };
 
   return (
-    <Container className="bg-dark text-white mt-4 MDmoviestyle-text pt-5">
+    <Container className="bg-dark text-white mt-4 pt-5">
       <div
         className="position-fixed"
         style={{
@@ -97,10 +97,10 @@ const Detail = () => {
               />
             </a>
             <div
-              className={"position-absolute"}
+              className="position-absolute"
               style={{ bottom: "-55px", left: "0", padding: "3px" }}
             >
-              <h1 className="me-5">{movie.title}</h1>
+              <h1>{movie.title}</h1>
               <h3>{movie.title_english}</h3>
             </div>
             <div
@@ -190,7 +190,7 @@ const Detail = () => {
               const chunkIndex = Math.floor(index / 3);
 
               if (!result[chunkIndex]) {
-                result[chunkIndex] = []; // 初始化新的一组
+                result[chunkIndex] = [];
               }
 
               result[chunkIndex].push(
@@ -199,14 +199,13 @@ const Detail = () => {
                   className="col-4 d-flex flex-column align-items-center mb-3"
                 >
                   <img
-                    className="ms-stills"
                     src={actor.actors}
                     alt={`actor-${index}`}
                     style={{
                       width: "550px",
                       height: "350px",
                       objectFit: "cover",
-                    }} // 设置图片宽高一致，并保持比例
+                    }}
                   />
                   <div
                     className="mt-2 text-center"
@@ -214,7 +213,6 @@ const Detail = () => {
                   >
                     {actor.name}
                   </div>{" "}
-                  {/* 设置字体大小 */}
                 </Col>
               );
 
@@ -232,34 +230,35 @@ const Detail = () => {
         <Col>
           <span className="h4 me-3">精彩評論</span>
           <span className="MDmoviestyle-text-small">
-            <Button
-              onClick={handleViewMore}
-              className="text-decoration-underline"
-            >
-              查看更多
+            <Button onClick={handleViewMore} className="ms-more-button">
+              更多&gt;
             </Button>
           </span>
           <hr className="mshr-style" />
           {movie.reviews?.map((review, index) => (
             <Card
               key={index}
-              className="mt-3 MDmoviestyle-body MDmoviestyle-text bg-dark text-white position-relative"
+              className="my-3 MDmoviestyle-body MDmoviestyle-text position-relative"
             >
               <Card.Body>
-                <div className="d-flex align-items-start">
-                  <div style={{ marginTop: "15px" }}>
+                <Row className="align-items-start">
+                  <Col xs="auto">
                     <img
-                      src={review.photo}
+                      src={
+                        review.photo
+                          ? review.photo
+                          : "/src/assets/Default_pfp.svg.webp"
+                      }
                       alt={review.nickName}
-                      className="me-3"
+                      className="rounded-circle"
                       style={{
                         width: "50px",
                         height: "50px",
-                        borderRadius: "50%",
+                        objectFit: "cover",
                       }}
                     />
-                  </div>
-                  <div>
+                  </Col>
+                  <Col>
                     <div className="d-flex flex-column">
                       <Card.Title className="mb-0 small">
                         {`${review.nickName}`}
@@ -278,10 +277,10 @@ const Detail = () => {
                           ))}
                         </span>
                       </Card.Title>
+                      <div className="small">{review.comment}</div>
                     </div>
-                    <div>{review.comment}</div>
-                  </div>
-                </div>
+                  </Col>
+                </Row>
               </Card.Body>
               <div
                 className="position-absolute"
@@ -292,10 +291,16 @@ const Detail = () => {
                   color: "white",
                 }}
               >
-                {new Date(review.reviewDate).toLocaleDateString()}{" "}
-                {new Date(review.reviewDate).toLocaleTimeString([], {
+                {new Date(review.reviewDate).toLocaleDateString("zh-TW", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                })}{" "}
+                {new Date(review.reviewDate).toLocaleTimeString("zh-TW", {
+                  hour12: false,
                   hour: "2-digit",
                   minute: "2-digit",
+                  second: "2-digit",
                 })}
               </div>
             </Card>

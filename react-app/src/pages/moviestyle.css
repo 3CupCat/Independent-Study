@@ -1,19 +1,15 @@
 
  .MDmoviestyle-body{
-    background-color: rgb(77, 77, 79);
+    background-color: rgb(30, 30, 30);
     padding: 24px;
   }
 
   .MDmoviestyle-text{
     color:white;
-    font-size: 18px;
-    line-height: 2;
+    font-size: 1.2rem;
+    line-height: 1.4;
   }
-  .MDsmoviestyle-text{
-    color:white;
-    font-size: 24px;
-    line-height: 2;
-  }
+
   .mdmoviestyle-img-wrapper {
     width: 1300px;
     height: 595px;
@@ -45,10 +41,6 @@
     font-size: 16px;
     color: #c7d1da;
   }
-  .msreview-text{
-    color: white;
-    font-size: 18px;
-  }
   
   .faYoutube {
     position: absolute;
@@ -66,27 +58,30 @@
   }
   .msborder-style{
     border: 1px solid rgb(134, 198, 255); 
-    padding: 4px 8px;
-    display: inline-flex;
-    align-items: center;
-    margin-right: 20px;
     border-radius: 8px;
-  }
-  
-  .ms-stills{
-    width: 33%wh;
-    height: auto;
-    object-fit: cover; 
+    padding: 0.5rem;
+    margin-right: 0.5rem;
+    display: inline-block;
   }
 
-  .mstext-black{
-    color: #000000;
-  }
-  .msuser-comment {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
   .ms-dispaly-none{
     display: none;
   }
+
+  .MDmoviestyle-text-small{
+    font-size: 1rem;
+  }
+
+  .ms-more-button {
+    background: none;
+    border: none;
+    color: #007bff;
+    padding: 0;
+    font-size: 1.1rem; 
+  }
+  
+  .ms-more-button:hover {
+    background-color: transparent;
+    text-decoration: underline;
+  }
+  
