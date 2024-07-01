@@ -92,6 +92,47 @@ const BonusPoints = () => {
 
   const totalPages = Math.ceil(points.length / pointsPerPage);
 
+  const formatNumber = (number) => {
+    return number.toLocaleString();
+  };
+
+  const renderPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPageButtons = 3;
+    const halfMaxPageButtons = Math.floor(maxPageButtons / 2);
+
+    let startPage = currentPage - halfMaxPageButtons;
+    let endPage = currentPage + halfMaxPageButtons;
+
+    if (startPage < 1) {
+      startPage = 1;
+      endPage = maxPageButtons;
+    }
+
+    if (endPage > totalPages) {
+      endPage = totalPages;
+      startPage = totalPages - maxPageButtons + 1;
+    }
+
+    if (startPage < 1) {
+      startPage = 1;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(
+        <Button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          isActive={i === currentPage}
+        >
+          {i}
+        </Button>
+      );
+    }
+
+    return pageNumbers;
+  };
+
   return (
     <Box
       direction="column"
@@ -118,7 +159,12 @@ const BonusPoints = () => {
                 >
                   紅利編號
                 </Th>
-                <Th color="white" fontSize="18px" textAlign="center">
+                <Th
+                  color="white"
+                  fontSize="18px"
+                  textAlign="center"
+                  whiteSpace="nowrap"
+                >
                   訂單日期
                 </Th>
                 <Th
@@ -159,18 +205,27 @@ const BonusPoints = () => {
               ) : (
                 currentPoints.map((point) => (
                   <Tr
-                    key={point.bonus.id}
+                    key={point.bonusId}
                     onClick={() => handleShowModal(point)}
                     _hover={{ cursor: "pointer", backgroundColor: "gray.100" }}
                   >
                     <Td fontSize="16px" textAlign="center">
-                      {point.bonus.id}
+                      {point.bonusId}
+                    </Td>
+                    <Td fontSize="16px" textAlign="center" whiteSpace="nowrap">
+                      {formatDate(point.orderDate.split("T")[0])}
                     </Td>
                     <Td fontSize="16px" textAlign="center">
-                      {formatDate(point.order.orderDate.split(" ")[0])}
-                    </Td>
-                    <Td fontSize="16px" textAlign="center">
-                      {point.bonus.bonus}
+                      <Box
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        height="100%"
+                      >
+                        <Text color={point.bonus < 0 ? "red" : "black"} m={0}>
+                          {formatNumber(point.bonus)}
+                        </Text>
+                      </Box>
                     </Td>
                   </Tr>
                 ))
@@ -193,15 +248,7 @@ const BonusPoints = () => {
           >
             Prev
           </Button>
-          {[...Array(totalPages > 3 ? 3 : totalPages).keys()].map((number) => (
-            <Button
-              key={number + 1}
-              onClick={() => handlePageChange(number + 1)}
-              isActive={number + 1 === currentPage}
-            >
-              {number + 1}
-            </Button>
-          ))}
+          {renderPageNumbers()}
           <Button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
@@ -226,33 +273,38 @@ const BonusPoints = () => {
               <ModalCloseButton color="black" />
               <ModalBody>
                 <Text color="black" fontSize="16px" textAlign="center">
-                  <strong>紅利編號:</strong> {selectedPoint.bonus.id}
+                  <strong>紅利編號:</strong> {selectedPoint.bonusId}
                 </Text>
                 <Text color="black" fontSize="16px" textAlign="center">
-                  <strong>點數:</strong> {selectedPoint.bonus.bonus}
+                  <strong>點數:</strong>{" "}
+                  <span
+                    style={{ color: selectedPoint.bonus < 0 ? "red" : "black" }}
+                  >
+                    {formatNumber(selectedPoint.bonus)}
+                  </span>
                 </Text>
                 <Text color="black" fontSize="16px" textAlign="center">
                   <strong>訂單日期:</strong>{" "}
-                  {formatDate(selectedPoint.order.orderDate.split(" ")[0])}
+                  {formatDate(selectedPoint.orderDate.split("T")[0])}
                 </Text>
                 <Text color="black" fontSize="16px" textAlign="center">
                   <strong>放映日期:</strong>{" "}
-                  {formatDate(selectedPoint.showtime.showTime.split(" ")[0])}
+                  {formatDate(selectedPoint.showTime.split("T")[0])}
                 </Text>
                 <Text color="black" fontSize="16px" textAlign="center">
-                  <strong>電影:</strong> {selectedPoint.movie.title}
+                  <strong>電影:</strong> {selectedPoint.title}
                 </Text>
                 <Text color="black" fontSize="16px" textAlign="center">
-                  <strong>戲院:</strong> {selectedPoint.theater.theaterName}
+                  <strong>戲院:</strong> {selectedPoint.theaterName}
                 </Text>
                 <Text color="black" fontSize="16px" textAlign="center">
-                  <strong>影廳:</strong> {selectedPoint.screen.screenName}
+                  <strong>影廳:</strong> {selectedPoint.screenName}
                 </Text>
                 <Text color="black" fontSize="16px" textAlign="center">
-                  <strong>支付方式:</strong> {selectedPoint.payment.payway}
+                  <strong>支付方式:</strong> {selectedPoint.payway}
                 </Text>
                 <Text color="black" fontSize="16px" textAlign="center">
-                  <strong>支付狀態:</strong> {selectedPoint.payment.payStatus}
+                  <strong>支付狀態:</strong> {selectedPoint.payStatus}
                 </Text>
               </ModalBody>
               <ModalFooter>

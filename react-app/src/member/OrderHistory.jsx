@@ -94,6 +94,55 @@ const OrderHistory = () => {
     return dateString.replace(/-/g, "/");
   };
 
+  const formatNumber = (number) => {
+    return number.toLocaleString();
+  };
+
+  const getPayStatusColor = (status, amount) => {
+    if (amount === 0) {
+      return "black";
+    }
+    const redStatuses = ["退款中", "退款失敗", "已退款"];
+    return redStatuses.includes(status) ? "red" : "black";
+  };
+
+  const renderPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPageButtons = 3;
+    const halfMaxPageButtons = Math.floor(maxPageButtons / 2);
+
+    let startPage = currentPage - halfMaxPageButtons;
+    let endPage = currentPage + halfMaxPageButtons;
+
+    if (startPage < 1) {
+      startPage = 1;
+      endPage = maxPageButtons;
+    }
+
+    if (endPage > totalPages) {
+      endPage = totalPages;
+      startPage = totalPages - maxPageButtons + 1;
+    }
+
+    if (startPage < 1) {
+      startPage = 1;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(
+        <Button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          isActive={i === currentPage}
+        >
+          {i}
+        </Button>
+      );
+    }
+
+    return pageNumbers;
+  };
+
   return (
     <Box
       direction="column"
@@ -120,7 +169,12 @@ const OrderHistory = () => {
                 >
                   訂單號
                 </Th>
-                <Th color="white" fontSize="18px" textAlign="center">
+                <Th
+                  color="white"
+                  fontSize="18px"
+                  textAlign="center"
+                  whiteSpace="nowrap"
+                >
                   日期
                 </Th>
                 <Th
@@ -133,7 +187,7 @@ const OrderHistory = () => {
                 </Th>
               </Tr>
             </Thead>
-            <Tbody>
+            <Tbody height="full">
               {orders.length === 0 ? (
                 <Tr>
                   <Td colSpan="3" height="full">
@@ -161,18 +215,35 @@ const OrderHistory = () => {
               ) : (
                 currentOrders.map((order) => (
                   <Tr
-                    key={order.order.orderNum}
+                    key={order.paymentId}
                     onClick={() => handleShowModal(order)}
                     _hover={{ cursor: "pointer", backgroundColor: "gray.100" }}
                   >
                     <Td fontSize="16px" textAlign="center">
-                      {order.order.orderNum}
+                      {order.orderNum}
+                    </Td>
+                    <Td fontSize="16px" textAlign="center" whiteSpace="nowrap">
+                      {formatDate(order.orderDate.split(" ")[0])}
                     </Td>
                     <Td fontSize="16px" textAlign="center">
-                      {formatDate(order.order.orderDate.split(" ")[0])}
-                    </Td>
-                    <Td fontSize="16px" textAlign="center">
-                      {order.order.totalAmount}
+                      <Box
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        height="100%"
+                      >
+                        <Text
+                          style={{
+                            color: getPayStatusColor(
+                              order.payStatus,
+                              order.totalAmount
+                            ),
+                          }}
+                          m={0}
+                        >
+                          {order.totalAmount}
+                        </Text>
+                      </Box>
                     </Td>
                   </Tr>
                 ))
@@ -195,15 +266,7 @@ const OrderHistory = () => {
           >
             Prev
           </Button>
-          {[...Array(totalPages > 3 ? 3 : totalPages).keys()].map((number) => (
-            <Button
-              key={number + 1}
-              onClick={() => handlePageChange(number + 1)}
-              isActive={number + 1 === currentPage}
-            >
-              {number + 1}
-            </Button>
-          ))}
+          {renderPageNumbers()}
           <Button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
@@ -233,70 +296,46 @@ const OrderHistory = () => {
               <ModalCloseButton color="black" />
               <ModalBody>
                 <Text fontSize="16px" color="black" textAlign="center">
-                  <strong>訂單號:</strong> {selectedOrder.order.orderNum}
+                  <strong>訂單號:</strong> {selectedOrder.orderNum}
                 </Text>
-                {selectedOrder.movie && (
-                  <>
-                    <Text color="black" textAlign="center">
-                      <strong>電影標題:</strong> {selectedOrder.movie.title}
-                    </Text>
-                  </>
-                )}
-                {selectedOrder.showtime && (
-                  <>
-                    <Text fontSize="16px" color="black" textAlign="center">
-                      <strong>放映時間:</strong>{" "}
-                      {formatDate(
-                        selectedOrder.showtime.showTime.replace("T", " ")
-                      )}
-                    </Text>
-                  </>
-                )}
-                {selectedOrder.theater && (
-                  <>
-                    <Text fontSize="16px" color="black" textAlign="center">
-                      <strong>電影院名稱:</strong>{" "}
-                      {selectedOrder.theater.theaterName}
-                    </Text>
-                  </>
-                )}
-                {selectedOrder.screen && (
-                  <>
-                    <Text fontSize="16px" color="black" textAlign="center">
-                      <strong>影廳名稱:</strong>{" "}
-                      {selectedOrder.screen.screenName}
-                    </Text>
-                  </>
-                )}
+                <Text color="black" textAlign="center">
+                  <strong>電影標題:</strong> {selectedOrder.title}
+                </Text>
+                <Text fontSize="16px" color="black" textAlign="center">
+                  <strong>放映時間:</strong>{" "}
+                  {formatDate(selectedOrder.showTime.replace("T", " "))}
+                </Text>
+                <Text fontSize="16px" color="black" textAlign="center">
+                  <strong>電影院名稱:</strong> {selectedOrder.theaterName}
+                </Text>
+                <Text fontSize="16px" color="black" textAlign="center">
+                  <strong>影廳名稱:</strong> {selectedOrder.screenName}
+                </Text>
                 <Text fontSize="16px" color="black" textAlign="center">
                   <strong>下訂日期:</strong>{" "}
-                  {selectedOrder.order.orderDate
-                    ? formatDate(selectedOrder.order.orderDate.split(" ")[0])
-                    : "無資料"}
+                  {formatDate(selectedOrder.orderDate.split(" ")[0])}
                 </Text>
-                {selectedOrder.payment && (
-                  <>
-                    <Text fontSize="16px" color="black" textAlign="center">
-                      <strong>付款日期:</strong>{" "}
-                      {selectedOrder.payment.payTime
-                        ? formatDate(
-                            selectedOrder.payment.payTime.split(" ")[0]
-                          )
-                        : "無資料"}
-                    </Text>
-                    <Text fontSize="16px" color="black" textAlign="center">
-                      <strong>付款狀態:</strong>{" "}
-                      {selectedOrder.payment.payStatus}
-                    </Text>
-                  </>
-                )}
+                <Text fontSize="16px" color="black" textAlign="center">
+                  <strong>付款狀態:</strong>{" "}
+                  <span>{selectedOrder.payStatus}</span>
+                </Text>
                 <Text color="black" fontSize="16px" textAlign="center">
-                  <strong>總金額:</strong> {selectedOrder.order.totalAmount}
+                  <strong>總金額:</strong>{" "}
+                  <span
+                    style={{
+                      color: getPayStatusColor(
+                        selectedOrder.payStatus,
+                        selectedOrder.totalAmount
+                      ),
+                    }}
+                  >
+                    {selectedOrder.totalAmount}
+                  </span>
                 </Text>
                 <Box p={4}>
                   <Flex direction="column" align="center" justify="center">
                     <Image
-                      src={selectedOrder.order.qrcode}
+                      src={selectedOrder.qrcode}
                       alt="QR Code"
                       border="2px solid"
                       borderColor="black"
