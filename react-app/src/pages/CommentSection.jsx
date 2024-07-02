@@ -236,58 +236,96 @@ const Rating = () => {
   return (
     <Container className="bg-dark text-white mt-4 pt-5 ps-0 pe-0">
       <Row className="justify-content-center">
-        <Col lg={10}>
-          <Row className="mt-2">
+        <Col className="mx-5">
+          <Row className="mt-4">
             <Col lg={3}>
               <Image
                 src={reviewDetailDto.poster}
                 alt={reviewDetailDto.title}
-                style={{ width: "100%", height: "auto" }}
+                style={{
+                  maxWidth: "245px",
+                  height: "350px",
+                  objectFit: "cover",
+                }}
               />
             </Col>
-            <Col lg={3} className="p-0">
-              <h2 className="mt-0 ms-1">{reviewDetailDto.title}</h2>
-              <div className="d-flex flex-column align-items-center">
-                <h2 className="mt-2">{averageRating}</h2>
-                <div className="mt-2">
-                  {renderStars(averageRating, handleStarClick)}
-                </div>
-                <p className="mt-2">
-                  {reviewDetailDto.totalCommentsNum} 則評論
-                </p>
-              </div>
-            </Col>
-
-            <Col lg={6} className="mt-4 p-0">
-              <div className="mt-2">
-                {[5, 4, 3, 2, 1].map((star) => (
-                  <div key={star} className="d-flex align-items-center mb-2">
-                    <span className="me-2 small">{star}</span>
-                    <ProgressBar
-                      now={percentages[star]}
-                      variant={"success"}
-                      style={{ flex: 1, height: "10px" }}
-                    />
+            <Col lg={9}>
+              <h1 className="ms-large-title">
+                {reviewDetailDto.title}
+              </h1>
+              <Row>
+                <Col lg={2}>
+                  <div className="d-flex flex-column align-items-center">
+                    <h2 className="mt-3 ms-md-title">{averageRating}</h2>
+                    <div>
+                      {renderStars(averageRating, handleStarClick)}
+                    </div>
+                    <p>
+                      {reviewDetailDto.totalCommentsNum} 則評論
+                    </p>
                   </div>
-                ))}
-              </div>
+                </Col>
+
+                <Col lg={10}>
+                  <div className="mt-2">
+                    {[5, 4, 3, 2, 1].map((star) => (
+                      <div
+                        key={star}
+                        className="d-flex align-items-center mb-2"
+                      >
+                        <span className="me-2 small">{star}</span>
+                        <ProgressBar
+                          now={percentages[star]}
+                          variant={"success"}
+                          style={{ flex: 1, height: "10px" }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </Col>
+
+                <Col lg={12}>
+                  <hr className="mshr-style mt-4 mb-2" />
+                  <Row>
+                    <div className="mt-1">
+                      {reviewDetailDto.isPlaying && (
+                        <span className="msborder-style MDmoviestyle-text-small">
+                          現正熱映
+                        </span>
+                      )}
+                      {reviewDetailDto.scoreAvg >= 4 &&
+                        reviewDetailDto.scoreAvg <= 5 && (
+                          <span className="msborder-style MDmoviestyle-text-small">
+                            壓倒性好評
+                          </span>
+                        )}
+                      {reviewDetailDto.scoreAvg >= 3 &&
+                        reviewDetailDto.scoreAvg < 4 && (
+                          <span className="msborder-style MDmoviestyle-text-small">
+                            大多好評
+                          </span>
+                        )}
+                      {reviewDetailDto.scoreAvg >= 2 &&
+                        reviewDetailDto.scoreAvg < 3 && (
+                          <span className="msborder-style MDmoviestyle-text-small">
+                            大多負評
+                          </span>
+                        )}
+                      {reviewDetailDto.scoreAvg >= 1 &&
+                        reviewDetailDto.scoreAvg < 2 && (
+                          <span className="msborder-style MDmoviestyle-text-small">
+                            壓倒性負評
+                          </span>
+                        )}
+                    </div>
+                  </Row>
+                </Col>
+              </Row>
             </Col>
           </Row>
-          <hr className="w-100 bg-white mb-3" />
-          <Row>
-            <div className="mt-1 ms-0">
-              {reviewDetailDto.isPlaying && (
-                <Button variant="primary" size="sm" className="me-2">
-                  現正熱映
-                </Button>
-              )}
-              {reviewDetailDto.scoreAvg >= 4 && (
-                <Button variant="primary" size="sm">
-                  大多好評
-                </Button>
-              )}
-            </div>
-          </Row>
+
+          {/* todo */}
+
           <h2 className="mt-4 ms-0">我的評價</h2>
           <div className="d-flex align-items-center">
             <div>{renderStars(rating, handleStarClick)}</div>

@@ -84,4 +84,12 @@
     background-color: transparent;
     text-decoration: underline;
   }
+
+  .ms-large-title {
+    font-size: 3rem; 
+    font-weight: bold; 
+  }
   
+  .ms-md-title{
+    font-size: 2.7rem;
+  }
