@@ -153,7 +153,7 @@ const BonusPoints = () => {
               <Tr>
                 <Th
                   color="white"
-                  fontSize="18px"
+                  fontSize="16px"
                   textAlign="center"
                   borderTopLeftRadius="md"
                 >
@@ -161,7 +161,7 @@ const BonusPoints = () => {
                 </Th>
                 <Th
                   color="white"
-                  fontSize="18px"
+                  fontSize="16px"
                   textAlign="center"
                   whiteSpace="nowrap"
                 >
@@ -169,7 +169,7 @@ const BonusPoints = () => {
                 </Th>
                 <Th
                   color="white"
-                  fontSize="18px"
+                  fontSize="16px"
                   textAlign="center"
                   borderTopRightRadius="md"
                 >

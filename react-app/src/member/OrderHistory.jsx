@@ -143,6 +143,13 @@ const OrderHistory = () => {
     return pageNumbers;
   };
 
+  const openFormInNewTab = (paymentForm) => {
+    const newWindow = window.open();
+    newWindow.document.open();
+    newWindow.document.write(paymentForm);
+    newWindow.document.close();
+  };
+
   return (
     <Box
       direction="column"
@@ -163,7 +170,7 @@ const OrderHistory = () => {
               <Tr>
                 <Th
                   color="white"
-                  fontSize="18px"
+                  fontSize="16px"
                   textAlign="center"
                   borderTopLeftRadius="md"
                 >
@@ -171,7 +178,7 @@ const OrderHistory = () => {
                 </Th>
                 <Th
                   color="white"
-                  fontSize="18px"
+                  fontSize="16px"
                   textAlign="center"
                   whiteSpace="nowrap"
                 >
@@ -179,11 +186,19 @@ const OrderHistory = () => {
                 </Th>
                 <Th
                   color="white"
-                  fontSize="18px"
+                  fontSize="16px"
+                  textAlign="center"
+                  whiteSpace="nowrap"
+                >
+                  總金額
+                </Th>
+                <Th
+                  color="white"
+                  fontSize="16px"
                   textAlign="center"
                   borderTopRightRadius="md"
                 >
-                  總金額
+                  操作
                 </Th>
               </Tr>
             </Thead>
@@ -244,6 +259,19 @@ const OrderHistory = () => {
                           {order.totalAmount}
                         </Text>
                       </Box>
+                    </Td>
+                    <Td fontSize="16px" textAlign="center">
+                      {order.paymentForm ? (
+                        <Button
+                          onClick={() => openFormInNewTab(order.paymentForm)}
+                          colorScheme="teal"
+                          variant="outline"
+                        >
+                          去付款
+                        </Button>
+                      ) : (
+                        "-"
+                      )}
                     </Td>
                   </Tr>
                 ))

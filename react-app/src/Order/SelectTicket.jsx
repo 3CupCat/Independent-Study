@@ -182,13 +182,13 @@ const SelectTicket = () => {
           newWindow.document.open();
           newWindow.document.write(response.data);
           newWindow.document.close();
-          navigate("/member");
+          navigate("/orderlist");
         }, 3000);
       } else {
         setToastMessage("正在為您導轉至歷史訂單...");
         setShowToast(true);
         setTimeout(() => {
-          navigate("/member");
+          navigate("/orderlist");
         }, 3000);
       }
 

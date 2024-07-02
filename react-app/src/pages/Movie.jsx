@@ -232,7 +232,7 @@ const Detail = () => {
           {movie.reviews?.map((review, index) => (
             <Card
               key={index}
-              className="my-3 MDmoviestyle-body MDmoviestyle-text position-relative"
+              className="my-3 MDmoviestyle-body MDmoviestyle-text bg-dark position-relative"
             >
               <Card.Body>
                 <Row className="align-items-start">
@@ -243,7 +243,7 @@ const Detail = () => {
                           ? review.photo
                           : "/src/assets/Default_pfp.svg.webp"
                       }
-                      alt={review.nickName}
+                      alt={review.nickName || "匿名用戶"}
                       className="rounded-circle"
                       style={{
                         width: "50px",
@@ -255,7 +255,7 @@ const Detail = () => {
                   <Col>
                     <div className="d-flex flex-column">
                       <Card.Title className="mb-0 small">
-                        {`${review.nickName}`}
+                        {`${review.nickName || "匿名用戶"}`}
                         <span
                           className="text-muted ms-2"
                           style={{ fontSize: "0.8em" }}
