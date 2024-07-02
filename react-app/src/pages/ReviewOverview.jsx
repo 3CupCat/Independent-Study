@@ -16,6 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { StarIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import axios from "axios";
+import Cookies from "js-cookie";
 
 const RatingOverview = () => {
   const navigate = useNavigate();
@@ -95,18 +96,27 @@ const RatingOverview = () => {
     }
   }, [movies, reviews]);
 
-  const handleReviewClick = async (movieId) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:8080/reviews/${movieId}`
-      );
+    const handleReviewClick = async (movieId) => {
+      try {
+        const token = Cookies.get("token");
+        const response = await axios.get(
+          `http://localhost:8080/reviews/${movieId}`,
+          {
+            headers: {
+              Authorization: token ? `Bearer ${token}` : "",
+            },
+          }
+        );
 
-      console.log("Review data:", response.data);
-      navigate(`/reviews/${movieId}`);
-    } catch (error) {
-      console.error("Error fetching review data:", error);
-    }
-  };
+        const reviewDetailDto = response.data;
+        console.log(reviewDetailDto);
+        navigate(`/reviews/${movieId}`, {
+          state: { movieId: movieId, reviewDetailDto },
+        });
+      } catch (error) {
+        console.error("Error fetching review data:", error);
+      }
+    };
 
   const handleSortChange = (value) => {
     setSortOption(value);
