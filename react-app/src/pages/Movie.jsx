@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faYoutube } from "@fortawesome/free-brands-svg-icons";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { Container, Row, Col, Button, Card, Carousel } from "react-bootstrap";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import "../pages/moviestyle.css";
 import { useMediaQuery } from "react-responsive";
 import axios from "axios";
 import Cookies from "js-cookie";
+import ReactPlayer from "react-player";
+import "../pages/moviestyle.css";
 
 const Detail = () => {
   const location = useLocation();
@@ -87,24 +87,14 @@ const Detail = () => {
               src={movie.poster}
               alt={movie.title}
             />
-            <a
+            <ReactPlayer
+              url={`https://www.youtube.com/watch?v=${movie.trailer}`}
+              playing={true}
+              controls={true}
+              width="100%"
+              height="100%"
               className="position-absolute top-50 start-50 translate-middle"
-              href={`https://www.youtube.com/watch?v=${movie.trailer}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <FontAwesomeIcon
-                icon={faYoutube}
-                style={{ color: "#f90101", fontSize: "60px" }}
-              />
-            </a>
-            <div
-              className="position-absolute"
-              style={{ bottom: "-55px", left: "0", padding: "3px" }}
-            >
-              <h1>{movie.title}</h1>
-              <h3>{movie.title_english}</h3>
-            </div>
+            />
             <div
               className={
                 isLargeScreen ? "position-absolute" : "ms-dispaly-none"
@@ -142,7 +132,9 @@ const Detail = () => {
           </div>
         </Col>
       </Row>
-      <Row className="mt-5">
+      <Row className="mt-2">
+        <h1>{movie.title}</h1>
+        <h3>{movie.title_english}</h3>
         <Col className="mt-2">
           <hr className="mshr-style" />
           <span className="msborder-style MDmoviestyle-text-small">
