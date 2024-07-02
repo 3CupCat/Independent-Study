@@ -39,7 +39,7 @@ const Favorites = () => {
 
       try {
         const response = await axios.get(
-          "http://localhost:8080/review/reviews",
+          "http://localhost:8080/api/member/reviews",
           {
             headers: {
               Authorization: `Bearer ${token}`,

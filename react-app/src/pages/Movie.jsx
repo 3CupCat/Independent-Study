@@ -48,7 +48,9 @@ const Detail = () => {
 
       const reviewDetailDto = response.data;
       console.log(reviewDetailDto);
-      navigate("/reviews", { state: { movieId: movie.id, reviewDetailDto } });
+      navigate(`/reviews/${movie.id}`, {
+        state: { movieId: movie.id, reviewDetailDto },
+      });
     } catch (error) {
       console.error("Error fetching reviews:", error);
     }

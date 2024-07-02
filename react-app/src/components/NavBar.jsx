@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -83,6 +83,7 @@ function Search() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const navigate = useNavigate();
+  const inputRef = useRef(null);
 
   const searchBgColor = "gray.800";
   const placeholderColor = "#FFFFF0";
@@ -135,13 +136,26 @@ function Search() {
     }
   };
 
+  const handleBlur = () => {
+    setResults([]);
+  };
+
+  const handleFocus = () => {
+    if (query.trim() !== "") {
+      handleSearch({ target: { value: query } });
+    }
+  };
+
   return (
     <Box position="relative">
       <Input
+        ref={inputRef}
         className="search-input"
         placeholder="Search movies..."
         value={query}
         onChange={handleSearch}
+        onBlur={handleBlur}
+        onFocus={handleFocus}
         bg={searchBgColor}
         color="white"
         border="1px"
@@ -170,7 +184,7 @@ function Search() {
               p="2"
               cursor="pointer"
               _hover={{ bg: "gray.700" }}
-              onClick={() => handleResultClick(result.id)}
+              onMouseDown={() => handleResultClick(result.id)}
               alignItems="center"
               spacing="3"
             >
@@ -206,7 +220,6 @@ function NavLinks() {
   );
 }
 
-// 添加PropTypes驗證
 NavLink.propTypes = {
   to: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,

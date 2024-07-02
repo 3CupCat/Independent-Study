@@ -2,6 +2,7 @@ import NavBar from "./components/NavBar";
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Overview from "./pages/Overview";
+import RatingOverview from "./pages/ReviewOverview";
 import Footer from "./components/Footer";
 import TheaterInfomation from "./TheaterInfomation/TheaterInfomation";
 import OrderLayout from "./Order/OrderLayout";
@@ -34,7 +35,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/booking/:movieId/seats" element={<SeatLayout />} />
-          <Route path="/reviews" element={<CommentSection />} />
+
+          <Route path="/reviews/:movieId" element={<CommentSection />} />
+          <Route path="/reviews" element={<RatingOverview />} />
           <Route path="/member" element={<Profile />} />
           <Route path="/password" element={<Password />} />
           <Route path="/orderlist" element={<Orderlist />} />
