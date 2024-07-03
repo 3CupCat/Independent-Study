@@ -143,13 +143,6 @@ const OrderHistory = () => {
     return pageNumbers;
   };
 
-  const openFormInNewTab = (paymentForm) => {
-    const newWindow = window.open();
-    newWindow.document.open();
-    newWindow.document.write(paymentForm);
-    newWindow.document.close();
-  };
-
   return (
     <Box
       direction="column"
@@ -198,7 +191,7 @@ const OrderHistory = () => {
                   textAlign="center"
                   borderTopRightRadius="md"
                 >
-                  操作
+                  類型
                 </Th>
               </Tr>
             </Thead>
@@ -261,17 +254,7 @@ const OrderHistory = () => {
                       </Box>
                     </Td>
                     <Td fontSize="16px" textAlign="center">
-                      {order.paymentForm ? (
-                        <Button
-                          onClick={() => openFormInNewTab(order.paymentForm)}
-                          colorScheme="teal"
-                          variant="outline"
-                        >
-                          去付款
-                        </Button>
-                      ) : (
-                        "-"
-                      )}
+                      {order.method}
                     </Td>
                   </Tr>
                 ))
