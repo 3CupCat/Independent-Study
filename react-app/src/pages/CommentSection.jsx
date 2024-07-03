@@ -51,32 +51,30 @@ const Rating = () => {
 
   useEffect(() => {
     const fetchMovieReviewDetail = async () => {
-      const token = Cookies.get("token");
-      if (token) {
-        try {
-          const response = await axios.get(
-            `http://localhost:8080/reviews/${movieId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          const data = response.data;
-          setreviewDetailDto(data);
-          setMessages(data.comments);
-          setRatingStats({
-            1: data.oneStarRate || 0,
-            2: data.twoStarRate || 0,
-            3: data.threeStarRate || 0,
-            4: data.fourStarRate || 0,
-            5: data.fiveStarRate || 0,
-          });
-          const avgRating = data.scoreAvg === 0 ? 0 : data.scoreAvg.toFixed(1);
-          setAverageRating(avgRating);
-        } catch (error) {
-          console.error("Error fetching user review:", error);
-        }
+      try {
+        const token = Cookies.get("token");
+        const response = await axios.get(
+          `http://localhost:8080/reviews/${movieId}`,
+          {
+            headers: {
+              Authorization: token ? `Bearer ${token}` : "",
+            },
+          }
+        );
+        const data = response.data;
+        setreviewDetailDto(data);
+        setMessages(data.comments);
+        setRatingStats({
+          1: data.oneStarRate || 0,
+          2: data.twoStarRate || 0,
+          3: data.threeStarRate || 0,
+          4: data.fourStarRate || 0,
+          5: data.fiveStarRate || 0,
+        });
+        const avgRating = data.scoreAvg === 0 ? 0 : data.scoreAvg.toFixed(1);
+        setAverageRating(avgRating);
+      } catch (error) {
+        console.error("Error fetching user review:", error);
       }
     };
     fetchMovieReviewDetail();
