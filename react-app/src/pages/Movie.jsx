@@ -171,7 +171,7 @@ const Detail = () => {
           <img
             key={index}
             className="ms-stills col-xxl-4 col-xl-12 col-lg-12 d-flex justify-content-center mb-3"
-            src={still.stills}
+            src={`${still.stills}.jpg`}
             alt={`still-${index}`}
           ></img>
         ))}
@@ -193,7 +193,7 @@ const Detail = () => {
                   className="col-4 d-flex flex-column align-items-center mb-3"
                 >
                   <img
-                    src={actor.actors}
+                    src={`${actor.actors}.jpg`}
                     alt={`actor-${index}`}
                     style={{
                       width: "550px",

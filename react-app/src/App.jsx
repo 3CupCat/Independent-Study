@@ -19,12 +19,14 @@ import FavoritesList from "./member/Member/FavoritesList";
 import Login from "./pages/Login";
 import Movie from "./pages/Movie";
 import { BookingProvider } from "./Context/BookingContext";
+import ScrollToTop from "./ScrollToTop";
 
 function App() {
   return (
     <ChakraProvider>
       <NavBar />
       <BookingProvider>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/movies" element={<Overview />} />

@@ -253,15 +253,12 @@ const RatingOverview = () => {
                   類別: {movie.genre}
                 </Text>
                 <Flex mt="2" alignItems="center">
-                  {averageScores[movie.id]?.average !== null && (
-                    <>
-                      <Icon as={StarIcon} color="yellow.500" />
-                      <Text ml="1" color={textColor}>
-                        {averageScores[movie.id]?.average}
-                      </Text>
-                    </>
-                  )}
+                  <Icon as={StarIcon} color="yellow.500" boxSize={4} />
+                  <Text mb="0" ml="2" fontSize="sm" color={textColor}>
+                    {averageScores[movie.id]?.average ?? 0}
+                  </Text>
                 </Flex>
+
                 <Button
                   mt="4"
                   bg={buttonBg}
