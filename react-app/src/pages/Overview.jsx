@@ -93,11 +93,14 @@ const Overview = () => {
           <Grid
             templateColumns={{
               base: "repeat(2, 1fr)",
+              sm: "repeat(2, 1fr)",
               md: "repeat(3, 1fr)",
               lg: "repeat(6, 1fr)",
             }}
             gap="6"
             mb="12"
+            maxWidth={{ base: "100%", sm: "100%", md: "100%", lg: "100%" }}
+            mx="auto"
           >
             {movies.map((movie, index) => (
               <Flex
@@ -109,11 +112,12 @@ const Overview = () => {
                 cursor="pointer"
                 onMouseEnter={() => setHoveredMovie(index)}
                 onMouseLeave={() => setHoveredMovie(null)}
+                mx="auto"
               >
                 <Box
                   position="relative"
-                  width="200px"
-                  height="300px"
+                  width={{ base: "160px", sm: "200px" }}
+                  height={{ base: "240px", sm: "300px" }}
                   overflow="hidden"
                   _hover={{
                     transform: "scale(1.05)",
@@ -132,7 +136,8 @@ const Overview = () => {
                     <Text
                       position="absolute"
                       bottom="10px"
-                      left="10px"
+                      left="50%"
+                      transform="translateX(-50%)"
                       bg="rgba(0, 0, 0, 0.7)"
                       color="white"
                       p="2"

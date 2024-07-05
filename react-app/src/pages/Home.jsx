@@ -34,11 +34,12 @@ const Home = () => {
   const buttonFocusBoxShadow = "0 0 0 4px #FFFFF0";
 
   const moviesPerPage = useBreakpointValue({
-    base: 2,
+    base: 1,
     sm: 2,
-    md: 4,
-    lg: 5,
-    xl: 6,
+    md: 3,
+    lg: 4,
+    xl: 5,
+    "2xl": 6,
   });
 
   useEffect(() => {
@@ -82,20 +83,20 @@ const Home = () => {
 
   const handlePrevMovie = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? displayedMovies.length - 1 : prevIndex - 1
+      prevIndex === 0 ? movies.length - 1 : prevIndex - 1
     );
   };
 
   const handleNextMovie = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === displayedMovies.length - 1 ? 0 : prevIndex + 1
+      prevIndex === movies.length - 1 ? 0 : prevIndex + 1
     );
   };
 
   const movies = isPlaying ? playingMovies : upcomingMovies;
 
   let displayedMovies;
-  if (movies.length < 2) {
+  if (movies.length <= moviesPerPage) {
     displayedMovies = movies;
   } else {
     displayedMovies = movies.slice(currentIndex, currentIndex + moviesPerPage);
@@ -107,7 +108,7 @@ const Home = () => {
   }
 
   return (
-    <Box bg={bg} color="white" minHeight="100vh" pt="4rem">
+    <Box bg={bg} color="white" minHeight="100vh" pt="4rem" overflow="hidden">
       <Box
         position="relative"
         width="100%"
@@ -149,7 +150,7 @@ const Home = () => {
         />
       </Flex>
       <Box minHeight="50px" />
-      <Flex justify="center" alignItems="center">
+      <Flex justify="center" alignItems="center" width="100%">
         {movies.length > moviesPerPage && (
           <IconButton
             icon={<ChevronLeftIcon />}
@@ -171,6 +172,10 @@ const Home = () => {
               displayedMovies.length
             )}, 1fr)`}
             gap={6}
+            width="100%"
+            maxWidth="100%"
+            overflow="hidden"
+            justifyItems="center"
           >
             {displayedMovies.map((movie) => (
               <Box
@@ -188,6 +193,7 @@ const Home = () => {
                 cursor="pointer"
                 onMouseEnter={() => setHoveredMovie(movie.id)}
                 onMouseLeave={() => setHoveredMovie(null)}
+                mx="auto"
               >
                 <Image
                   className="movie-image"
@@ -196,6 +202,7 @@ const Home = () => {
                   width="100%"
                   height="100%"
                   objectFit="cover"
+                  display="block"
                 />
                 <Text className="movie-title" textAlign="center" mt="2">
                   {movie.title}
@@ -204,7 +211,8 @@ const Home = () => {
                   <Text
                     position="absolute"
                     bottom="10px"
-                    left="10px"
+                    left="50%"
+                    transform="translateX(-50%)"
                     bg="rgba(0, 0, 0, 0.7)"
                     color="white"
                     p="2"

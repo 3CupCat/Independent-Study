@@ -229,7 +229,7 @@ const RatingOverview = () => {
                   objectFit="cover"
                 />
               </Box>
-              <Box ml="6" flex="1">
+              <Box ml="6" flex="1" display={{ base: "none", md: "block" }}>
                 <ReactPlayer
                   url={`https://www.youtube.com/watch?v=${movie.trailer}`}
                   width="100%"

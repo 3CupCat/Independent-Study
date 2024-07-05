@@ -39,7 +39,7 @@ function NavBar() {
         <Flex align="center">
           <Logo />
           <Flex display={{ base: "none", md: "flex" }}>
-            <NavLinks />
+            <NavLinks isOpen={isOpen} onClose={() => setIsOpen(false)} />
           </Flex>
         </Flex>
         <Flex display={{ base: "none", md: "flex" }}>
@@ -63,7 +63,7 @@ function NavBar() {
           mt="4"
           align="start"
         >
-          <NavLinks />
+          <NavLinks isOpen={isOpen} onClose={() => setIsOpen(false)} />
           <Search />
         </VStack>
       )}
@@ -204,7 +204,7 @@ function Search() {
   );
 }
 
-function NavLinks() {
+function NavLinks({ isOpen, onClose }) {
   return (
     <Flex
       gap="1.5rem"
@@ -212,24 +212,26 @@ function NavLinks() {
       direction={{ base: "column", md: "row" }}
       align={{ base: "start", md: "center" }}
     >
-      <NavLink to="/movies" label="電影資訊" />
-      <NavLink to="/reviews" label="電影評論" />
-      <NavLink to="/theaters" label="影城資訊" />
-      <NavLink to="/login" label="會員中心" />
+      <NavLink to="/movies" label="電影資訊" onClose={onClose} />
+      <NavLink to="/reviews" label="電影評論" onClose={onClose} />
+      <NavLink to="/theaters" label="影城資訊" onClose={onClose} />
+      <NavLink to="/login" label="會員中心" onClose={onClose} />
     </Flex>
   );
 }
 
-NavLink.propTypes = {
-  to: PropTypes.string.isRequired,
-  label: PropTypes.string.isRequired,
+NavLinks.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
 
-function NavLink({ to, label }) {
+function NavLink({ to, label, onClose }) {
   const navigate = useNavigate();
 
   const handleClick = (e) => {
     e.preventDefault();
+    onClose(); // 關閉漢堡菜單
+
     if (label === "會員中心") {
       const token = Cookies.get("token");
       if (token) {
