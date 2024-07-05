@@ -1,14 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import {
-  Modal,
-  Button,
-  Spinner,
-  Form,
-  Container,
-  Row,
-  Col,
-} from "react-bootstrap";
+import { Modal, Button, Form } from "react-bootstrap";
 import "../pages/Loginpage.css";
 import { useMediaQuery } from "react-responsive";
 
@@ -27,6 +19,7 @@ const Info = () => {
   const [isVerificationSent, setIsVerificationSent] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [accountError, setAccountError] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -191,6 +184,7 @@ const Info = () => {
       })
       .then(function (response) {
         setIsLoading(false);
+        setShowModal(false); // 隱藏驗證碼模態對話框
         setShowSuccessModal(true);
         console.log(response);
 
@@ -208,6 +202,8 @@ const Info = () => {
           } else {
             setErrorMessage(JSON.stringify(error.response.data));
           }
+          setShowErrorModal(true); // 顯示錯誤模態對話框
+          setShowModal(false); // 隱藏驗證碼模態對話框
         }
         console.log(error);
       });
@@ -219,6 +215,10 @@ const Info = () => {
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
+  };
+
+  const handleCloseErrorModal = () => {
+    setShowErrorModal(false);
   };
 
   return (
@@ -345,6 +345,26 @@ const Info = () => {
           >
             註冊成功！即將跳轉到登入頁面...
           </Modal.Body>
+        </Modal>
+
+        <Modal show={showErrorModal} onHide={handleCloseErrorModal}>
+          <Modal.Header closeButton>
+            <Modal.Title>驗證失敗</Modal.Title>
+          </Modal.Header>
+          <Modal.Body
+            className={
+              isLargeScreen
+                ? "custom-modal-content-lg"
+                : "custom-modal-content-m"
+            }
+          >
+            驗證碼錯誤，請重新嘗試。
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleCloseErrorModal}>
+              關閉
+            </Button>
+          </Modal.Footer>
         </Modal>
 
         <div className="login-link">
